@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
+
 const aiRoutes = require("./routes/aiRoutes");
 const authRoutes = require("./routes/authRoutes");
 const progressRoutes = require("./routes/progressRoutes");
@@ -9,16 +10,9 @@ const complaintRoutes = require("./routes/complaintRoutes");
 const employeeVerificationRoutes = require('./routes/employeeVerificationRoutes');
 
 const app = express();
+const path = require("path");
 
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173", // Local frontend
-      process.env.FRONTEND_URL, // Production frontend
-    ],
-    credentials: true,
-  })
-);
+app.use(cors());
 
 app.use(express.json());
 
@@ -31,6 +25,13 @@ app.use('/api/verification', employeeVerificationRoutes);
 
 app.get("/", (req, res) => {
   res.send("FairSay API Running");
+});
+
+// Serve frontend build
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
 });
 
 // Health / Ping Endpoint
