@@ -229,23 +229,28 @@ exports.forgotPassword = async (req, res) => {
 
     await createResetToken(user.id, hashedToken, expiresAt);
 
-    // // 🔥 FRONTEND URL (NOT backend)
-    // const resetURL = `http://localhost:3000/reset-password/${rawToken}`;
+    const frontendURL = process.env.FRONTEND_URL;
+    if (!frontendURL) {
+      throw new Error("FRONTEND_URL is not defined in environment variables");
+    }
 
-    // await sendEmail(
-    //   user.email,
-    //   "Password Reset Request",
-    //   `
-    //     <h3>Password Reset</h3>
-    //     <p>Click the link below to reset your password:</p>
-    //     <a href="${resetURL}">${resetURL}</a>
-    //     <p>This link expires in 1 hour.</p>
-    //   `
-    // );
+    const resetURL = `${frontendURL}/reset-password/${rawToken}`;
+     await sendEmail(
+      email,
+      "Password Reset Request",
+      `
+        <h2>Password Reset</h2>
+        <p>Hello ${user.first_name},</p>
+        <p>You requested a password reset. Click the button below to reset your password:</p>
+        <a href="${resetURL}" 
+           style="display:inline-block;padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
+           Reset Password
+        </a>
+        <p>This link will expire in 1 hour.</p>
+      `
+    );  
 
-    console.log(
-      `Reset link: http://localhost:5000/api/auth/reset-password/${rawToken}`
-    );
+    =
 
     res.json({ message: "If email exists, reset link sent" });
 
@@ -259,8 +264,11 @@ exports.forgotPassword = async (req, res) => {
 //  RESET PASSWORD
 exports.resetPassword = async (req, res) => {
   try {
-    const { token } = req.params;
-    const { password } = req.body;
+    const { token, password } = req.body;
+    
+    if (!token || !password) {
+      return res.status(400).json({ message: "Token and new password are required" });
+    }
 
     const hashedToken = crypto
       .createHash("sha256")
@@ -275,18 +283,14 @@ exports.resetPassword = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await updatePassword(record.user_id, hashedPassword); 
-
-    // Auto verify email after successful password reset
-    await verifyUserEmailById(record.user_id);
-
+    await updatePassword(record.user_id, hashedPassword);
     await markTokenUsed(record.id);
     await deleteUserTokens(record.user_id);
 
     res.json({ message: "Password reset successful" });
 
   } catch (err) {
-    console.error(err);
+    console.error("Reset password error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

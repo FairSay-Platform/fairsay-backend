@@ -21,7 +21,8 @@ router.put("/profile", verifyToken, updateProfile);
 // );
 
 router.post("/forgot-password", forgotPassword);
-router.post("/reset-password/:token", resetPassword);
+router.post("/reset-password", resetPassword);
+
 
 
 
