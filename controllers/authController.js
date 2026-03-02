@@ -250,8 +250,6 @@ exports.forgotPassword = async (req, res) => {
       `
     );  
 
-    =
-
     res.json({ message: "If email exists, reset link sent" });
 
   } catch (err) {
