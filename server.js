@@ -12,7 +12,11 @@ const employeeVerificationRoutes = require('./routes/employeeVerificationRoutes'
 const app = express();
 const path = require("path");
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://fairsay.onrender.com",
+  })
+);
 
 app.use(express.json());
 
