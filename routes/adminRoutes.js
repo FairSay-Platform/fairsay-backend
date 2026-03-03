@@ -36,7 +36,7 @@ router.patch(
 
 // Admin + Investigator
 router.get(
-  "/my-complaints",
+  "/complaints/assigned",
   verifyToken,
   roleMiddleware("admin", "investigator"),
   getAssignedComplaints
