@@ -175,3 +175,34 @@ exports.submitReport = async (req, res) => {
     res.status(500).json({ message: "Error submitting report" });
   }
 };
+
+
+exports.getDashboardStats = async (req, res) => {
+  try {
+    let query = `
+      SELECT 
+        COUNT(*) as total,
+        SUM(status = 'submitted') as submitted,
+        SUM(status = 'under_review') as under_review,
+        SUM(status = 'investigation') as investigation,
+        SUM(status = 'resolved') as resolved,
+        SUM(status = 'rejected') as rejected
+      FROM complaints
+    `;
+
+    let params = [];
+
+    // If not super admin, only count assigned complaints
+    if (req.user.role !== "super_admin") {
+      query += " WHERE assigned_to = ?";
+      params.push(req.user.id);
+    }
+
+    const [rows] = await db.execute(query, params);
+
+    res.json({ stats: rows[0] });
+
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching dashboard stats" });
+  }
+};

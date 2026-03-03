@@ -8,6 +8,7 @@ const authRoutes = require("./routes/authRoutes");
 const progressRoutes = require("./routes/progressRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
 const employeeVerificationRoutes = require('./routes/employeeVerificationRoutes');
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 const path = require("path");
@@ -26,6 +27,7 @@ app.use("/api/users", progressRoutes);
 // AI chat endpoint
 app.use("/api/ai", aiRoutes);
 app.use('/api/verification', employeeVerificationRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/", (req, res) => {
   res.send("FairSay API Running");

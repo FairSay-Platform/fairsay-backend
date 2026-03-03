@@ -8,7 +8,8 @@ const {
   updateComplaintStatus,
   getAllComplaints,
   getAssignedComplaints,
-  submitReport
+  submitReport,
+  getDashboardStats
 } = require("../controllers/adminController");
 
 // Super Admin only
@@ -46,6 +47,13 @@ router.post(
   verifyToken,
   roleMiddleware("admin", "investigator"),
   submitReport
+);
+
+router.get(
+  "/dashboard",
+  verifyToken,
+  roleMiddleware("super_admin", "admin", "investigator"),
+  getDashboardStats
 );
 
 module.exports = router;
