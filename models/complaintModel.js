@@ -7,8 +7,8 @@ submitWhistleblowerReport: async (connection, userId, trackingId, data) => {
     INSERT INTO complaints (
       user_id, tracking_id, violation_category, title, description, 
       date_of_incident, location, status, current_step, 
-      is_submitted, is_draft, submitted_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'submitted', 5, 1, 0, NOW())
+      is_submitted
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'submitted', 5, NOW())
   `;
   const params = [
     userId,
@@ -84,13 +84,31 @@ submitWhistleblowerReport: async (connection, userId, trackingId, data) => {
   },
 
   markComplaintSubmitted: async (connection, id, trackingId) => {
-    await connection.execute(
-      `UPDATE complaints 
-       SET is_submitted = 1, tracking_id = ?, status = 'submitted', current_step = 5, submitted_at = NOW() 
-       WHERE id = ?`,
-      [trackingId, id]
-    );
-  },
+  await connection.execute(
+    `
+    UPDATE complaints
+    SET 
+      status = 'submitted',
+      tracking_id = ?,
+      current_step = 5,
+      submitted_at = NOW()
+    WHERE id = ?
+    `,
+    [trackingId, id]
+  );
+},
+
+
+  
+
+  // markComplaintSubmitted: async (connection, id, trackingId) => {
+  //   await connection.execute(
+  //     `UPDATE complaints 
+  //      SET is_submitted = 1, tracking_id = ?, status = 'submitted', current_step = 5, submitted_at = NOW() 
+  //      WHERE id = ?`,
+  //     [trackingId, id]
+  //   );
+  // },
 
   insertStatusHistory: async (connection, complaintId, userId, status) => {
     await connection.execute(

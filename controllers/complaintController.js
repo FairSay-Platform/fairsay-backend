@@ -127,24 +127,27 @@ exports.uploadEvidence = async (req, res) => {
 // STEP 5: Submit with Transaction and Sequential ID
 exports.submitComplaint = async (req, res) => {
   const connection = await db.getConnection();
+
   try {
     await connection.beginTransaction();
 
     const complaint = await complaintModel.getComplaintByIdForUpdate(connection, req.params.id);
 
+    // Validate ownership
     if (!complaint || complaint.user_id !== req.user.id) {
       await connection.rollback();
       return res.status(403).json({ message: "Unauthorized access" });
     }
-
-    if (complaint.is_submitted) {
+    // Prevent double submission
+    if (complaint.status !== "draft") {
       await connection.rollback();
-      return res.status(400).json({ message: "Already submitted" });
+      return res.status(400).json({ message: `Complaint already ${complaint.status}` });
     }
 
-    // Pass the active connection to ensure the lock works
+    // Pass the active connection to ensure the lock works/ Generate tracking ID inside transaction
     const trackingId = await generateTrackingId(connection);
-
+    
+    // Update complaint using STATUS
     await complaintModel.markComplaintSubmitted(connection, req.params.id, trackingId);
     await complaintModel.insertStatusHistory(connection, req.params.id, req.user.id, 'submitted');
 
