@@ -9,6 +9,7 @@ const progressRoutes = require("./routes/progressRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
 const employeeVerificationRoutes = require('./routes/employeeVerificationRoutes');
 const adminRoutes = require("./routes/adminRoutes");
+const courseRoutes = require("./routes/courseRoutes");
 
 const app = express();
 const path = require("path");
@@ -28,17 +29,21 @@ app.use("/api/users", progressRoutes);
 app.use("/api/ai", aiRoutes);
 app.use('/api/verification', employeeVerificationRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/courses", courseRoutes);
+
 
 app.get("/", (req, res) => {
   res.send("FairSay API Running");
 });
+const moduleRoutes = require("./routes/moduleRoutes");
+app.use("/api/modules", moduleRoutes);
 
-// Serve frontend build
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
+// // Serve frontend build
+// app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
-});
+// app.get(/.*/, (req, res) => {
+//   res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+// });
 
 // Health / Ping Endpoint
 app.get("/ping", (req, res) => {

@@ -7,7 +7,7 @@ submitWhistleblowerReport: async (connection, userId, trackingId, data) => {
     INSERT INTO complaints (
       user_id, tracking_id, violation_category, title, description, 
       date_of_incident, location, status, current_step, 
-      is_submitted
+      submitted_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, 'submitted', 5, NOW())
   `;
   const params = [
@@ -63,13 +63,6 @@ submitWhistleblowerReport: async (connection, userId, trackingId, data) => {
   return result;
 },
 
-  // // STEP 4: Add Evidence URLs
-  // addEvidence: async (complaintId, fileUrl, fileType, description) => {
-  //   const query = `INSERT INTO complaint_evidence (complaint_id, file_url, file_type, description) VALUES (?, ?, ?, ?)`;
-  //   const [result] = await db.execute(query, [complaintId, fileUrl, fileType, description]);
-  //   return result;
-  // },
-
   getComplaintById: async (id) => {
   const query = `SELECT * FROM complaints WHERE id = ?`;
   const [rows] = await db.execute(query, [id]);
@@ -97,9 +90,6 @@ submitWhistleblowerReport: async (connection, userId, trackingId, data) => {
     [trackingId, id]
   );
 },
-
-
-  
 
   // markComplaintSubmitted: async (connection, id, trackingId) => {
   //   await connection.execute(
