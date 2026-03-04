@@ -51,7 +51,8 @@ exports.register = async (req, res) => {
   
 
     // SEND VERIFICATION EMAIL
-    const verificationLink = `https://fairsay-backend.onrender.com/api/auth/verify-email?token=${emailToken}`;
+    const verificationLink =
+      `${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailToken}`;
 
     const html = `
       <h2>Email Verification</h2>
@@ -70,11 +71,8 @@ exports.register = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Register route error:", error); // logs full error to server console
+    console.error("Register route error:", error); 
     res.status(500).json({ message: error.message, stack: error.stack });
-
-    // console.error(error);
-    // res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -89,9 +87,10 @@ exports.verifyEmail = async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired token" });
     }
 
-    return res.redirect("http://localhost:5173/sign-in?verified=true");
-
-    // res.json({ message: "Email verified successfully" });
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/sign-in?verified=true`
+    );
+  
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -177,34 +176,6 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
-// //  SUPER ADMIN VERIFY USER
-// exports.verifyUser = async (req, res) => {
-//   try {
-//     const { userId } = req.params;
-//     const superAdminId = req.user.id;
-//     console.log(`Attempting to verify User ID: ${userId} by Admin: ${superAdminId}`);
-
-//     // Capture the result of the database operation
-//     const result = await approveUser(userId, superAdminId);
-    
-//     // Log the result (e.g., rows affected)
-//     console.log("Database result:", result);
-
-//     if (result.affectedRows === 0) {
-//         return res.status(404).json({ message: "User not found or already verified" });
-//     }
-    
-//     await approveUser(userId, superAdminId);
-
-//     res.json({ message: "User verified successfully" });
-
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
 
 
 //  FORGOT PASSWORD
