@@ -10,6 +10,7 @@ const complaintRoutes = require("./routes/complaintRoutes");
 const employeeVerificationRoutes = require('./routes/employeeVerificationRoutes');
 const adminRoutes = require("./routes/adminRoutes");
 const courseRoutes = require("./routes/courseRoutes");
+const moduleRoutes = require("./routes/moduleRoutes");
 
 const app = express();
 const path = require("path");
@@ -31,11 +32,10 @@ app.use('/api/verification', employeeVerificationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/courses", courseRoutes);
 
-
 app.get("/", (req, res) => {
   res.send("FairSay API Running");
 });
-const moduleRoutes = require("./routes/moduleRoutes");
+
 app.use("/api/modules", moduleRoutes);
 
 // // Serve frontend build
