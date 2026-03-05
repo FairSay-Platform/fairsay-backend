@@ -49,7 +49,7 @@ exports.submitWhistleblowing = async (req, res) => {
   }
 };
 
-// This controller handles the multi-step complaint submission process, including the new whistleblower submission endpoint. Each step is designed to be modular, allowing for easy maintenance and future enhancements.
+
 // STEP 1
 exports.createDraftComplaint = async (req, res) => {
   try {
