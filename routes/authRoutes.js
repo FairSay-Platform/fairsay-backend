@@ -8,7 +8,7 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 router.post("/register", register);
 router.post("/login", login);
 router.get("/verify-email", verifyEmail);
-
+router.post("/resend-verification", resendVerificationEmail);
 
 
 router.put("/profile", verifyToken, updateProfile);

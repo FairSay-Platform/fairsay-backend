@@ -100,6 +100,50 @@ exports.verifyEmail = async (req, res) => {
 };
 
 
+// RESEND VERIFICATION EMAIL
+exports.resendVerificationEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await findUserByEmail(email);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.email_verified) {
+      return res.status(400).json({ message: "Email already verified" });
+    }
+
+    const emailToken = crypto.randomBytes(20).toString("hex");
+
+    // update token in database
+    await verifyUserEmailById(user.id, emailToken);
+
+    const verificationLink =
+      `${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailToken}`;
+
+    const html = `
+      <h2>Email Verification</h2>
+      <p>Hello ${user.first_name},</p>
+      <p>Please click the button below to verify your email:</p>
+      <a href="${verificationLink}" 
+         style="display:inline-block;padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
+         Verify Email
+      </a>
+    `;
+
+    await sendEmail(email, "Verify Your Email", html);
+
+    res.json({ message: "Verification email resent successfully" });
+
+  } catch (error) {
+    console.error("Resend verification error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 // LOGIN
 exports.login = async (req, res) => {
   try {
