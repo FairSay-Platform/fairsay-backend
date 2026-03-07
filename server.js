@@ -2,16 +2,15 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const db = require("./config/db");
-
-
+const learningRoutes = require("./routes/learningRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const authRoutes = require("./routes/authRoutes");
-const progressRoutes = require("./routes/progressRoutes");
+// const progressRoutes = require("./routes/progressRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
 const employeeVerificationRoutes = require('./routes/employeeVerificationRoutes');
 const adminRoutes = require("./routes/adminRoutes");
-const courseRoutes = require("./routes/courseRoutes");
-const moduleRoutes = require("./routes/moduleRoutes");
+// const courseRoutes = require("./routes/courseRoutes");
+// const moduleRoutes = require("./routes/moduleRoutes");
 
 const app = express();
 const path = require("path");
@@ -26,27 +25,20 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/complaints", complaintRoutes);
-app.use("/api/users", progressRoutes);
+// app.use("/api/users", progressRoutes);
 
 app.use("/api/ai", aiRoutes);
 app.use('/api/verification', employeeVerificationRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/courses", courseRoutes);
+app.use("/api/learning", learningRoutes);
+// app.use("/api/courses", courseRoutes);
 
 app.get("/", (req, res) => {
   res.send("FairSay API Running");
 });
 
-app.use("/api/modules", moduleRoutes);
+// app.use("/api/modules", moduleRoutes);
 
-app.get("/debug-db", async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT DATABASE() AS db");
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 // // Serve frontend build
 // app.use(express.static(path.join(__dirname, "../frontend/dist")));
@@ -60,14 +52,14 @@ app.get("/ping", (req, res) => {
   res.status(200).send("OK");
 });
 
-app.get("/debug-db", async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT DATABASE() as db");
-    res.json(rows);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// app.get("/debug-db", async (req, res) => {
+//   try {
+//     const [rows] = await db.query("SELECT DATABASE() as db");
+//     res.json(rows);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))

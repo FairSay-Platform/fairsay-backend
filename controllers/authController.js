@@ -76,6 +76,8 @@ exports.register = async (req, res) => {
   }
 };
 
+
+
 // VERIFY EMAIL
 exports.verifyEmail = async (req, res) => {
   try {
@@ -96,6 +98,7 @@ exports.verifyEmail = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // LOGIN
 exports.login = async (req, res) => {
