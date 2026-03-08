@@ -7,13 +7,14 @@ const createUser = async (
   email,
   hashedPassword,
   role = "user",
-  emailToken = null
+  emailToken = null,
+  tokenExpiry = null
 ) => {
   const [result] = await db.execute(
     `INSERT INTO users 
-     (first_name, last_name, email, password_hash, role, email_verification_token) 
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [first_name, last_name, email, hashedPassword, role, emailToken]
+     (first_name, last_name, email, password_hash, role, email_verification_token, email_verification_expires) 
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [first_name, last_name, email, hashedPassword, role, emailToken, tokenExpiry]
   );
 
   return result;
@@ -41,22 +42,45 @@ const findUserById = async (id) => {
 // VERIFY EMAIL
 const verifyUserEmail = async (token) => {
   const [rows] = await db.execute(
-    "SELECT id FROM users WHERE email_verification_token = ?",
+    "SELECT id, email_verification_expires FROM users WHERE email_verification_token = ?",
     [token]
   );
 
   if (!rows[0]) return null;
 
+  const user = rows[0];
+
+  if (new Date(user.email_verification_expires) < new Date()) {
+    return null;
+  }
+
   await db.execute(
     `UPDATE users 
      SET email_verified = TRUE, 
-         email_verification_token = NULL 
+         email_verification_token = NULL,
+         email_verification_expires = NULL 
      WHERE id = ?`,
-    [rows[0].id]
+     [user.id]
+    // [rows[0].id]
   );
 
-  return rows[0];
+  // return rows[0];
+  return user;
 };
+
+
+const updateVerificationToken = async (userId, token, expiry) => {
+
+  await db.execute(
+    `UPDATE users
+     SET email_verification_token = ?,
+         email_verification_expires = ?
+     WHERE id = ?`,
+    [token, expiry, userId]
+  );
+
+};
+
 
 
 
@@ -160,6 +184,7 @@ module.exports = {
   findUserByEmail,
   findUserById,
   verifyUserEmail,
+  updateVerificationToken,
   updateLastLogin,
   updateUserProfile,
   updatePassword,

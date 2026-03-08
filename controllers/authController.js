@@ -11,7 +11,8 @@ const {
   verifyUserEmail,
   updateLastLogin,
   updatePassword,
-  verifyUserEmailById
+  verifyUserEmailById,
+  updateVerificationToken
 } = require("../models/userModel");
 
 const {
@@ -33,12 +34,15 @@ exports.register = async (req, res) => {
     }
 
     const existingUser = await findUserByEmail(email);
+
     if (existingUser) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
     const password_hash = await bcrypt.hash(password, 10);
-    const emailToken = crypto.randomBytes(20).toString("hex");
+    const emailToken = crypto.randomBytes(32).toString("hex");
+
+    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
 
     await createUser(
       first_name,
@@ -46,7 +50,8 @@ exports.register = async (req, res) => {
       email,
       password_hash,
       "user",
-      emailToken
+      emailToken,
+      tokenExpiry
     );
   
 
@@ -62,6 +67,7 @@ exports.register = async (req, res) => {
          style="display:inline-block;padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
          Verify Email
       </a>
+      <p>This link expires in 24 hours.</p>
     `;
 
     await sendEmail(email, "Verify Your Email", html);
@@ -71,8 +77,8 @@ exports.register = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Register route error:", error); 
-    res.status(500).json({ message: error.message, stack: error.stack });
+    console.error("Register error:", error); 
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -80,7 +86,9 @@ exports.register = async (req, res) => {
 
 // VERIFY EMAIL
 exports.verifyEmail = async (req, res) => {
+
   try {
+
     const { token } = req.query;
 
     const user = await verifyUserEmail(token);
@@ -102,7 +110,9 @@ exports.verifyEmail = async (req, res) => {
 
 // RESEND VERIFICATION EMAIL
 exports.resendVerificationEmail = async (req, res) => {
+
   try {
+
     const { email } = req.body;
 
     const user = await findUserByEmail(email);
@@ -112,13 +122,20 @@ exports.resendVerificationEmail = async (req, res) => {
     }
 
     if (user.email_verified) {
-      return res.status(400).json({ message: "Email already verified" });
+      return res.status(400).json({
+        message: "Email already verified"
+      });
     }
 
-    const emailToken = crypto.randomBytes(20).toString("hex");
+    const emailToken = crypto.randomBytes(32).toString("hex");
 
-    // update token in database
-    await verifyUserEmailById(user.id, emailToken);
+    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await updateVerificationToken(
+      user.id,
+      emailToken,
+      tokenExpiry
+    );
 
     const verificationLink =
       `${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailToken}`;
@@ -126,22 +143,30 @@ exports.resendVerificationEmail = async (req, res) => {
     const html = `
       <h2>Email Verification</h2>
       <p>Hello ${user.first_name},</p>
-      <p>Please click the button below to verify your email:</p>
-      <a href="${verificationLink}" 
-         style="display:inline-block;padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
-         Verify Email
+      <p>Please verify your email:</p>
+      <a href="${verificationLink}"
+      style="padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
+      Verify Email
       </a>
+      <p>This link expires in 24 hours.</p>
     `;
 
     await sendEmail(email, "Verify Your Email", html);
 
-    res.json({ message: "Verification email resent successfully" });
+    res.json({
+      message: "Verification email resent successfully"
+    });
 
   } catch (error) {
+
     console.error("Resend verification error:", error);
+
     res.status(500).json({ message: "Server error" });
+
   }
+
 };
+
 
 
 // LOGIN
