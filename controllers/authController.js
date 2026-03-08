@@ -27,7 +27,10 @@ const {
 // REGISTER
 exports.register = async (req, res) => {
   try {
-    const { first_name, last_name, email, password } = req.body;
+    let { first_name, last_name, email, password } = req.body;
+
+    email = email.trim().toLowerCase();
+
 
     if (!first_name || !last_name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
