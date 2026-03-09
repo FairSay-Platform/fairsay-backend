@@ -62,16 +62,38 @@ exports.register = async (req, res) => {
     const verificationLink =
       `${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailToken}`;
 
+    // const html = `
+    //   <h2>Email Verification</h2>
+    //   <p>Hello ${first_name},</p>
+    //   <p>Please click the button below to verify your email:</p>
+    //   <a href="${verificationLink}" 
+    //      style="display:inline-block;padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
+    //      Verify Email
+    //   </a>
+    //   <p>This link expires in 24 hours.</p>
+    // `;
     const html = `
-      <h2>Email Verification</h2>
-      <p>Hello ${first_name},</p>
-      <p>Please click the button below to verify your email:</p>
-      <a href="${verificationLink}" 
-         style="display:inline-block;padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
-         Verify Email
-      </a>
-      <p>This link expires in 24 hours.</p>
-    `;
+  <h2>Email Verification</h2>
+  <p>Hello ${first_name},</p>
+
+  <p>Please click the button below to verify your email:</p>
+
+  <p>
+    <a href="${verificationLink}" target="_blank"
+    style="display:inline-block;padding:12px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
+    Verify Email
+    </a>
+  </p>
+
+  <p>If the button doesn't work, copy and paste this link into your browser:</p>
+
+  <p>${verificationLink}</p>
+
+  <p>This link expires in 24 hours.</p>
+`;
+
+    console.log("Verification link:", verificationLink);
+
 
     await sendEmail(email, "Verify Your Email", html);
 
