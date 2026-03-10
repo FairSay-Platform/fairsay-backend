@@ -9,6 +9,7 @@ const authRoutes = require("./routes/authRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
 const employeeVerificationRoutes = require('./routes/employeeVerificationRoutes');
 const adminRoutes = require("./routes/adminRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 // const courseRoutes = require("./routes/courseRoutes");
 // const moduleRoutes = require("./routes/moduleRoutes");
 
@@ -31,6 +32,7 @@ app.use("/api/ai", aiRoutes);
 app.use('/api/verification', employeeVerificationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/learning", learningRoutes);
+app.use("/api/notifications", notificationRoutes);
 // app.use("/api/courses", courseRoutes);
 
 app.get("/", (req, res) => {
