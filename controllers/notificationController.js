@@ -18,13 +18,14 @@ exports.getNotifications = async (req, res) => {
 
 exports.createNotification = async (req, res) => {
   try {
+    const { title, description } = req.body;
+    const userId = req.user.id;
 
-    const { user_id, title, description } = req.body;
-
-    await Notification.create(user_id, title, description);
+    const notificationId = await Notification.create(userId, title, description);
 
     res.status(201).json({
-      message: "Notification created"
+      message: "Notification created",
+      id: notificationId
     });
 
   } catch (error) {
