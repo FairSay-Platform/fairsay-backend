@@ -4,13 +4,18 @@ const verifyToken = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
 const {
+  getUsers,
   assignComplaint,
   updateComplaintStatus,
   getAllComplaints,
   getAssignedComplaints,
   submitReport,
   getDashboardStats
+
 } = require("../controllers/adminController");
+
+
+router.get("/users", verifyToken, getUsers);
 
 // Super Admin only
 router.get(

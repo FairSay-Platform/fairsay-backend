@@ -83,3 +83,41 @@ exports.getDashboardStats = async (role, userId) => {
   return rows[0];
 };
 
+
+// =====================================
+// Get Users (role-based)
+// super_admin → all users
+// admin/investigator → only users assigned to them via complaints
+// =====================================
+exports.getUsers = async (role, userId) => {
+  let rows;
+
+  if (role === "super_admin") {
+    // Super Admin sees all users
+    [rows] = await db.execute(`
+      SELECT
+        id,
+        first_name,
+        last_name,
+        email,
+        role,
+        email_verified,
+        created_at
+      FROM users
+      ORDER BY created_at DESC
+    `);
+  } else if (["admin", "investigator"].includes(role)) {
+    // Admin/Investigator sees only users linked to their assigned complaints
+    [rows] = await db.execute(`
+      SELECT DISTINCT u.id, u.first_name, u.last_name, u.email, u.role, u.email_verified, u.created_at
+      FROM users u
+      JOIN complaints c ON u.id = c.user_id
+      WHERE c.assigned_to = ?
+      ORDER BY u.created_at DESC
+    `, [userId]);
+  } else {
+    rows = [];
+  }
+
+  return rows;
+};

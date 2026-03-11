@@ -30,28 +30,6 @@ const submitVerification = async (req, res) => {
   }
 };
 
-// const submitVerification = async (req, res) => {
-//   try {
-//     const { declaration, consentData, consentPrivacy } = req.body;
-//     if (!req.file) {
-//       return res.status(400).json({ message: 'Proof document is required' });
-//     }
-//     const proofUrl = req.file.path;
-
-//     const result = await saveEmployeeVerification({
-//       userId: req.user.id,
-//       declaration,
-//       proofUrl,
-//       consentData: consentData === 'true' || consentData === true,
-//       consentPrivacy: consentPrivacy === 'true' || consentPrivacy === true
-//     });
-
-//     res.json({ message: 'Verification submitted successfully', result });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// };
 
 // ADMIN APPROVE
 const approveVerification = async (req, res) => {
