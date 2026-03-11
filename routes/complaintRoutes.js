@@ -3,6 +3,7 @@ const router = express.Router();
 
 // Middleware
 const verifyToken = require("../middleware/authMiddleware");
+const requireOnboarding = require("../middleware/requireOnboarding");
 const { upload } = require("../config/cloudinary");
 
 // Controller
@@ -26,19 +27,19 @@ router.post(
 );
 
 // Step 1: Create the initial draft
-router.post("/", verifyToken, createDraftComplaint);
+router.post("/", verifyToken, requireOnboarding, createDraftComplaint);
 
 // Step 2: Update incident details (Date, Location, etc.)
-router.put("/:id/step-2", verifyToken, updateStep2);
+router.put("/:id/step-2", verifyToken, requireOnboarding, updateStep2);
 
 // Step 3: Add parties involved (Accused, Witnesses)
-router.post("/:id/parties", verifyToken, addComplaintParties);
+router.post("/:id/parties", verifyToken, requireOnboarding, addComplaintParties);
 
 // Step 4: Upload multiple evidence files (Cloudinary)
-router.post("/:id/evidence", verifyToken, upload.array("files", 5), uploadEvidence);
+router.post("/:id/evidence", verifyToken, requireOnboarding, upload.array("files", 5), uploadEvidence);
 
 // Step 5: Final Submission (Generates Tracking ID and closes editing)
-router.post("/:id/submit", verifyToken, submitComplaint);
+router.post("/:id/submit", verifyToken, requireOnboarding, submitComplaint);
 
 
 

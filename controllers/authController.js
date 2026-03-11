@@ -247,9 +247,9 @@ exports.login = async (req, res) => {
         email: user.email,
         role: user.role,
         email_verified: user.email_verified,
-        profile_completed: user.profile_completed,
-        course_completed: user.course_completed,
-        lessons_completed: user.lessons_completed,
+        profile_completed: user.profile_completed || false,
+        course_completed: user.course_completed || false,
+        lessons_completed: user.lessons_completed || false,
       },
     });
   } catch (error) {

@@ -21,6 +21,7 @@ const submitVerification = async (req, res) => {
       consentData: consentData === 'true' || consentData === true,
       consentPrivacy: consentPrivacy === 'true' || consentPrivacy === true
     });
+    
 
     res.json({ message: 'Verification submitted successfully' });
   } catch (err) {
