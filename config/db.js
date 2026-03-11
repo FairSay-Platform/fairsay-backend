@@ -1,46 +1,49 @@
-// // const mysql = require("mysql2");
-// const mysql = require("mysql2/promise");
-
-
-// const db = mysql.createPool({
-//   host : '127.0.0.1',
-//   user: "justina",
-//   password: "Justina123$",
-//   database: "Fairsaydb",
-//   waitForConnections: true,
-//   connectionLimit : 10,
-//   queueLimit: 0
-// });
-
-// // db.connect(err => {
-// //   if (err) {
-// //     console.error("Database connection failed:", err);
-// //   } else {
-// //     console.log("MySQL Connected");
-// //   }
-// // });
-// console.log("MySQL Connected");
-
-// module.exports = db;
-
-
 const mysql = require("mysql2/promise");
 require("dotenv").config();
 
-const db = mysql.createPool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: process.env.DB_CONNECTION_LIMIT || 10,
-  queueLimit: 0,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
+// Detect environment
+const isProduction = process.env.NODE_ENV === 'production';
 
-console.log("MySQL Pool Created");
+
+const dbConfig = isProduction
+  ? {
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      waitForConnections: true,
+      connectionLimit: process.env.DB_CONNECTION_LIMIT || 10,
+      queueLimit: 0,
+      ssl: { rejectUnauthorized: false }, // needed for Railway
+    }
+  : {
+      host: process.env.LOCAL_DB_HOST,
+      port: process.env.LOCAL_DB_PORT || 3306,
+      user: process.env.LOCAL_DB_USER,
+      password: process.env.LOCAL_DB_PASSWORD,
+      database: process.env.LOCAL_DB_NAME,
+      waitForConnections: true,
+      connectionLimit: process.env.DB_CONNECTION_LIMIT || 10,
+      queueLimit: 0,
+    };
+
+const db = mysql.createPool(dbConfig);
+console.log(`MySQL Pool Created - Environment: ${process.env.NODE_ENV || 'development'}`);  
+// const db = mysql.createPool({
+//   host: process.env.DB_HOST,
+//   port: process.env.DB_PORT,
+//   user: process.env.DB_USER,
+//   password: process.env.DB_PASSWORD,
+//   database: process.env.DB_NAME,
+//   waitForConnections: true,
+//   connectionLimit: process.env.DB_CONNECTION_LIMIT || 10,
+//   queueLimit: 0,
+//   ssl: {
+//     rejectUnauthorized: false
+//   }
+// });
+
+// console.log("MySQL Pool Created");
 
 module.exports = db;

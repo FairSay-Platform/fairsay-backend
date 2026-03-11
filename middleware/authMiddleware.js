@@ -22,7 +22,7 @@ const verifyToken = (req, res, next) => {
 
     // Attach user to request
     req.user = decoded;
-console.log("User role in middleware:", req.user.role);
+    console.log("User role in middleware:", req.user.role);
 
     next(); // Continue to route
 
