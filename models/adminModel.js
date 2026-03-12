@@ -197,163 +197,103 @@ exports.getDashboardStats = async (role, userId) => {
 // };
 
 
-
 exports.getUsers = async (role, userId, verification, limit = 20, offset = 0) => {
-
-  let rows = [];
+  let rows = { data: [], total_count: 0 };
   let params = [];
   let countParams = [];
 
-  // Ensure numbers
-  limit = Number(limit);
-  offset = Number(offset);
+  // 1. Force strict integer types for MySQL LIMIT/OFFSET
+  const cleanLimit = parseInt(limit, 10) || 20;
+  const cleanOffset = parseInt(offset, 10) || 0;
 
-  // SUPER ADMIN — can see all users
-  if (role === "super_admin") {
+  try {
+    // --- SUPER ADMIN BLOCK ---
+    if (role === "super_admin") {
+      let query = `
+        SELECT
+          u.id, u.first_name, u.last_name, u.email, u.role, u.email_verified, u.created_at,
+          COALESCE(ev.status, 'not_submitted') AS verification_status,
+          ev.document_path AS proof_url,
+          p.job_title, p.department, p.company_name, p.location, p.phone
+        FROM users u
+        LEFT JOIN employee_verifications ev ON u.id = ev.user_id
+        LEFT JOIN user_profiles p ON u.id = p.user_id
+      `;
 
-    let query = `
-      SELECT
-        u.id,
-        u.first_name,
-        u.last_name,
-        u.email,
-        u.role,
-        u.email_verified,
-        u.created_at,
+      let countQuery = `
+        SELECT COUNT(*) AS total_count
+        FROM users u
+        LEFT JOIN employee_verifications ev ON u.id = ev.user_id
+      `;
 
-        COALESCE(ev.status, 'not_submitted') AS verification_status,
-        ev.document_path AS proof_url,
+      if (verification) {
+        query += ` WHERE COALESCE(ev.status,'not_submitted') = ?`;
+        countQuery += ` WHERE COALESCE(ev.status,'not_submitted') = ?`;
+        params.push(verification);
+        countParams.push(verification);
+      }
 
-        p.job_title,
-        p.department,
-        p.company_name,
-        p.location,
-        p.phone
+      query += ` ORDER BY u.created_at DESC LIMIT ? OFFSET ?`;
+      params.push(cleanLimit, cleanOffset);
 
-      FROM users u
+      const [userRows] = await db.query(query, params);
+      const [countRows] = await db.query(countQuery, countParams);
 
-      LEFT JOIN employee_verifications ev
-        ON u.id = ev.user_id
-
-      LEFT JOIN user_profiles p
-        ON u.id = p.user_id
-    `;
-
-    let countQuery = `
-      SELECT COUNT(*) AS total_count
-      FROM users u
-
-      LEFT JOIN employee_verifications ev
-        ON u.id = ev.user_id
-
-      LEFT JOIN user_profiles p
-        ON u.id = p.user_id
-    `;
-
-    if (verification) {
-      query += ` WHERE COALESCE(ev.status,'not_submitted') = ?`;
-      countQuery += ` WHERE COALESCE(ev.status,'not_submitted') = ?`;
-
-      params.push(verification);
-      countParams.push(verification);
+      rows = {
+        data: userRows,
+        total_count: countRows[0].total_count
+      };
     }
 
-    query += ` ORDER BY u.created_at DESC LIMIT ? OFFSET ?`;
-    params.push(limit, offset);
+    // --- ADMIN / INVESTIGATOR BLOCK ---
+    else if (["admin", "investigator"].includes(role)) {
+      let query = `
+        SELECT DISTINCT
+          u.id, u.first_name, u.last_name, u.email, u.role, u.email_verified, u.created_at,
+          COALESCE(ev.status,'not_submitted') AS verification_status,
+          ev.document_path AS proof_url,
+          p.job_title, p.department, p.company_name, p.location, p.phone
+        FROM users u
+        JOIN complaints c ON u.id = c.user_id
+        LEFT JOIN employee_verifications ev ON u.id = ev.user_id
+        LEFT JOIN user_profiles p ON u.id = p.user_id
+        WHERE c.assigned_to = ?
+      `;
 
-    const [userRows] = await db.execute(query, params);
-    const [countRows] = await db.execute(countQuery, countParams);
+      let countQuery = `
+        SELECT COUNT(DISTINCT u.id) AS total_count
+        FROM users u
+        JOIN complaints c ON u.id = c.user_id
+        LEFT JOIN employee_verifications ev ON u.id = ev.user_id
+        WHERE c.assigned_to = ?
+      `;
 
-    rows = {
-      data: userRows,
-      total_count: countRows[0].total_count
-    };
+      params.push(userId);
+      countParams.push(userId);
 
-  }
+      if (verification) {
+        query += ` AND COALESCE(ev.status,'not_submitted') = ?`;
+        countQuery += ` AND COALESCE(ev.status,'not_submitted') = ?`;
+        params.push(verification);
+        countParams.push(verification);
+      }
 
-  // ADMIN / INVESTIGATOR — only users with complaints assigned to them
-  else if (["admin", "investigator"].includes(role)) {
+      query += ` ORDER BY u.created_at DESC LIMIT ? OFFSET ?`;
+      params.push(cleanLimit, cleanOffset);
 
-    let query = `
-      SELECT DISTINCT
-        u.id,
-        u.first_name,
-        u.last_name,
-        u.email,
-        u.role,
-        u.email_verified,
-        u.created_at,
+      const [userRows] = await db.query(query, params);
+      const [countRows] = await db.query(countQuery, countParams);
 
-        COALESCE(ev.status,'not_submitted') AS verification_status,
-        ev.document_path AS proof_url,
-
-        p.job_title,
-        p.department,
-        p.company_name,
-        p.location,
-        p.phone
-
-      FROM users u
-
-      JOIN complaints c
-        ON u.id = c.user_id
-
-      LEFT JOIN employee_verifications ev
-        ON u.id = ev.user_id
-
-      LEFT JOIN user_profiles p
-        ON u.id = p.user_id
-
-      WHERE c.assigned_to = ?
-    `;
-
-    let countQuery = `
-      SELECT COUNT(DISTINCT u.id) AS total_count
-
-      FROM users u
-
-      JOIN complaints c
-        ON u.id = c.user_id
-
-      LEFT JOIN employee_verifications ev
-        ON u.id = ev.user_id
-
-      LEFT JOIN user_profiles p
-        ON u.id = p.user_id
-
-      WHERE c.assigned_to = ?
-    `;
-
-    params.push(userId);
-    countParams.push(userId);
-
-    if (verification) {
-      query += ` AND COALESCE(ev.status,'not_submitted') = ?`;
-      countQuery += ` AND COALESCE(ev.status,'not_submitted') = ?`;
-
-      params.push(verification);
-      countParams.push(verification);
+      rows = {
+        data: userRows,
+        total_count: countRows[0].total_count
+      };
     }
 
-    query += ` ORDER BY u.created_at DESC LIMIT ? OFFSET ?`;
-    params.push(limit, offset);
+    return rows;
 
-    const [userRows] = await db.execute(query, params);
-    const [countRows] = await db.execute(countQuery, countParams);
-
-    rows = {
-      data: userRows,
-      total_count: countRows[0].total_count
-    };
-
+  } catch (error) {
+    console.error("Get users error in Model:", error);
+    throw error; 
   }
-
-  else {
-    rows = {
-      data: [],
-      total_count: 0
-    };
-  }
-
-  return rows;
 };
