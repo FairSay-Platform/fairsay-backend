@@ -150,92 +150,41 @@ exports.getDashboardStats = async (req, res) => {
   }
 };
 
-// // GET USERS (role-based)
-// // adminController.js
+
 
 // exports.getUsers = async (req, res) => {
 //   try {
-//     const users = await adminModel.getUsers(req.user.role, req.user.id);
+//     const { verification, limit = 20, offset = 0 } = req.query;
 
-//     if (!users || users.length === 0) {
-//       return res.status(404).json({ success: true, data: [], message: "No users found" });
-//     }
+//     const usersResult = await adminModel.getUsers(
+//       req.user.role,
+//       req.user.id,
+//       verification,
+//       parseInt(limit, 10),
+//       parseInt(offset, 10)
+//     );
 
-//     res.json({ success: true, data: users });
+//     res.json({
+//       success: true,
+//       data: usersResult.data,
+//       total_count: usersResult.total_count
+//     });
+
 //   } catch (err) {
 //     console.error("Get users error:", err);
-//     res.status(500).json({ success: false, message: "Server error" });
+//     res.status(500).json({
+//       success: false,
+//       message: "Server error"
+//     });
 //   }
 // };
 
 
-
-// // =====================================
-// // Get Users (role-based)
-// // super_admin → all users
-// // admin/investigator → only users assigned to them via complaints
-// // =====================================
-// exports.getUsers = async (role, userId) => {
-//   let rows;
-
-//   if (role === "super_admin") {
-//     [rows] = await db.execute(`
-//       SELECT
-//         u.id,
-//         u.first_name,
-//         u.last_name,
-//         u.email,
-//         u.role,
-//         u.email_verified,
-//         u.created_at,
-
-//         COALESCE(ev.status, 'not_submitted') AS verification_status,
-
-//         ev.document_path AS proof_url
-
-//       FROM users u
-//       LEFT JOIN employee_verifications ev
-//         ON u.id = ev.user_id
-
-//       ORDER BY u.created_at DESC
-//     `);
-
-//   } else if (["admin", "investigator"].includes(role)) {
-
-//     [rows] = await db.execute(`
-//       SELECT DISTINCT
-//         u.id,
-//         u.first_name,
-//         u.last_name,
-//         u.email,
-//         u.role,
-//         u.email_verified,
-//         u.created_at,
-
-//         COALESCE(ev.status, 'not_submitted') AS verification_status
-//         ev.document_path AS proof_url
-
-//       FROM users u
-//       JOIN complaints c
-//         ON u.id = c.user_id
-
-//       LEFT JOIN employee_verifications ev
-//         ON u.id = ev.user_id
-
-//       WHERE c.assigned_to = ?
-
-//       ORDER BY u.created_at DESC
-//     `, [userId]);
-
-//   } else {
-//     rows = [];
-//   }
-
-//   return rows;
-// };
 
 exports.getUsers = async (req, res) => {
+
   try {
+
     const { verification, limit = 20, offset = 0 } = req.query;
 
     const usersResult = await adminModel.getUsers(
@@ -253,10 +202,14 @@ exports.getUsers = async (req, res) => {
     });
 
   } catch (err) {
+
     console.error("Get users error:", err);
+
     res.status(500).json({
       success: false,
       message: "Server error"
     });
+
   }
+
 };

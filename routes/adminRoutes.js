@@ -15,7 +15,15 @@ const {
 } = require("../controllers/adminController");
 
 
-router.get("/users", verifyToken, getUsers);
+// router.get("/users", verifyToken, getUsers);
+
+// Admin / Investigator / Super Admin
+router.get(
+  "/users",
+  verifyToken,
+  roleMiddleware("super_admin", "admin", "investigator"),
+  getUsers
+);
 
 // Super Admin only
 router.get(
