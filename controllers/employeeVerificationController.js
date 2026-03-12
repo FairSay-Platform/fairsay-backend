@@ -4,6 +4,10 @@ const { saveEmployeeVerification, approveUser, rejectUser } = require('../models
 const submitVerification = async (req, res) => {
   try {
     console.log("User ID:", req.user?.id);
+    console.log("User ID:", req.user?.id);
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);   // 👈 add this
+
     if (!req.file) {
       return res.status(400).json({ message: 'Proof document is required' });
     }
