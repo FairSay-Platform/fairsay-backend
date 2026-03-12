@@ -23,6 +23,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/complaints", complaintRoutes);
@@ -46,3 +47,25 @@ app.get("/ping", (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 
+app.use((err, req, res, next) => {
+  console.error("Global Error:", err);
+
+  if (err.message === "Invalid file type. Only PDF, JPG, PNG allowed.") {
+    return res.status(400).json({
+      success: false,
+      message: err.message
+    });
+  }
+
+  if (err.code === "LIMIT_FILE_SIZE") {
+    return res.status(400).json({
+      success: false,
+      message: "File too large. Max size is 10MB"
+    });
+  }
+
+  res.status(500).json({
+    success: false,
+    message: "Server error"
+  });
+});

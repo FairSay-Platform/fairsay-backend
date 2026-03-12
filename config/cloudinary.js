@@ -12,8 +12,9 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'fairsay_evidence', // This folder will be created in your Cloudinary media library
-    allowed_formats: ['jpg', 'png', 'jpeg', 'pdf'], 
+    folder: 'fairsay_evidence', // This folder will be created in your Cloudinary media library,
+    resource_type: "auto",
+    allowed_formats: ['jpg', 'png', 'jpeg', 'pdf','doc','docx'], 
     transformation: [{ width: 1000, crop: "limit" }] 
   },
 });
