@@ -33,8 +33,6 @@ const submitVerification = async (req, res) => {
       proofUrl,
       consentData: consentDataBool,
       consentPrivacy: consentPrivacyBool
-      // consentData: consentData === 'true' || consentData === true,
-      // consentPrivacy: consentPrivacy === 'true' || consentPrivacy === true
     });
     
 
