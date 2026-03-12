@@ -3,9 +3,7 @@ const { saveEmployeeVerification, approveUser, rejectUser } = require('../models
 // USER SUBMISSION
 const submitVerification = async (req, res) => {
   try {
-    console.log("USER:", req.user);
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
+    console.log("User ID:", req.user?.id);
     if (!req.file) {
       return res.status(400).json({ message: 'Proof document is required' });
     }
@@ -13,19 +11,32 @@ const submitVerification = async (req, res) => {
     const proofUrl = req.file.path; // Cloudinary URL
 
     const { declaration, consentData, consentPrivacy } = req.body;
+    
+    // converting to real booleans
+    const consentDataBool = consentData === 'true' || consentData === true;
+    const consentPrivacyBool = consentPrivacy === 'true' || consentPrivacy === true;
+
+    // validation
+    if (!consentDataBool || !consentPrivacyBool) {
+      return res.status(400).json({
+        message: "You must agree to data and privacy consent"
+      });
+    }
 
     await saveEmployeeVerification({
       userId: req.user.id,
       declaration,
       proofUrl,
-      consentData: consentData === 'true' || consentData === true,
-      consentPrivacy: consentPrivacy === 'true' || consentPrivacy === true
+      consentData: consentDataBool,
+      consentPrivacy: consentPrivacyBool
+      // consentData: consentData === 'true' || consentData === true,
+      // consentPrivacy: consentPrivacy === 'true' || consentPrivacy === true
     });
     
 
     res.json({ message: 'Verification submitted successfully' });
   } catch (err) {
-    console.error(err);
+    console.error("Verification Error:", err);
     res.status(500).json({ message: 'Server error' });
   }
 };
