@@ -27,6 +27,7 @@ const {
 // REGISTER
 exports.register = async (req, res) => {
   try {
+
     let { first_name, last_name, email, password } = req.body;
 
     email = email.trim().toLowerCase();
@@ -56,46 +57,68 @@ exports.register = async (req, res) => {
       emailToken,
       tokenExpiry
     );
-  
+    
 
     // SEND VERIFICATION EMAIL
     const verificationLink =
       `${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailToken}`;
 
+      const html = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>Email Verification</h2>
+        <p>Hello ${first_name},</p>
+        <p>Please click the button below to verify your email address and complete your registration:</p>
+        <p>
+          <a href="${verificationLink}" target="_blank"
+             style="display:inline-block;padding:12px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">
+             Verify Email
+          </a>
+        </p>
+        <p>If the button doesn't work, copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; color: #4CAF50;">${verificationLink}</p>
+        <p>This link expires in 24 hours.</p>
+        <hr style="border:none;border-top:1px solid #eee;" />
+        <p style="font-size: 0.8em; color: #888;">If you did not create an account, please ignore this email.</p>
+      </div>
+    `;
+
+    console.log("Generated Verification link:", verificationLink);
+
+    // Send Email (Wrapped in its own try/catch to prevent registration crash)
+    try {
+      await sendEmail(email, "Verify Your Email", html);
+      console.log(`📧 Verification email sent to: ${email}`);
+    } catch (mailError) {
+      console.error("❌ Email failed to send, but user was created:", mailError.message);
+    }
+
+
+
+    
     // const html = `
     //   <h2>Email Verification</h2>
     //   <p>Hello ${first_name},</p>
+
     //   <p>Please click the button below to verify your email:</p>
-    //   <a href="${verificationLink}" 
-    //      style="display:inline-block;padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
-    //      Verify Email
-    //   </a>
+
+    //   <p>
+    //     <a href="${verificationLink}" target="_blank"
+    //     style="display:inline-block;padding:12px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
+    //     Verify Email
+    //     </a>
+    //   </p>
+
+    //   <p>If the button doesn't work, copy and paste this link into your browser:</p>
+
+    //   <p>${verificationLink}</p>
+
     //   <p>This link expires in 24 hours.</p>
     // `;
-    const html = `
-  <h2>Email Verification</h2>
-  <p>Hello ${first_name},</p>
 
-  <p>Please click the button below to verify your email:</p>
-
-  <p>
-    <a href="${verificationLink}" target="_blank"
-    style="display:inline-block;padding:12px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
-    Verify Email
-    </a>
-  </p>
-
-  <p>If the button doesn't work, copy and paste this link into your browser:</p>
-
-  <p>${verificationLink}</p>
-
-  <p>This link expires in 24 hours.</p>
-`;
-
-    console.log("Verification link:", verificationLink);
+    // console.log("Verification link:", verificationLink);
 
 
-    await sendEmail(email, "Verify Your Email", html);
+    // await sendEmail(email, "Verify Your Email", html);
 
     res.status(201).json({
       message: "User registered successfully. Please verify your email.",
