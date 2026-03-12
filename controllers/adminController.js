@@ -170,66 +170,93 @@ exports.getDashboardStats = async (req, res) => {
 
 
 
-// =====================================
-// Get Users (role-based)
-// super_admin → all users
-// admin/investigator → only users assigned to them via complaints
-// =====================================
-exports.getUsers = async (role, userId) => {
-  let rows;
+// // =====================================
+// // Get Users (role-based)
+// // super_admin → all users
+// // admin/investigator → only users assigned to them via complaints
+// // =====================================
+// exports.getUsers = async (role, userId) => {
+//   let rows;
 
-  if (role === "super_admin") {
-    [rows] = await db.execute(`
-      SELECT
-        u.id,
-        u.first_name,
-        u.last_name,
-        u.email,
-        u.role,
-        u.email_verified,
-        u.created_at,
+//   if (role === "super_admin") {
+//     [rows] = await db.execute(`
+//       SELECT
+//         u.id,
+//         u.first_name,
+//         u.last_name,
+//         u.email,
+//         u.role,
+//         u.email_verified,
+//         u.created_at,
 
-        COALESCE(ev.status, 'not_submitted') AS verification_status,
+//         COALESCE(ev.status, 'not_submitted') AS verification_status,
 
-        ev.document_path AS proof_url
+//         ev.document_path AS proof_url
 
-      FROM users u
-      LEFT JOIN employee_verifications ev
-        ON u.id = ev.user_id
+//       FROM users u
+//       LEFT JOIN employee_verifications ev
+//         ON u.id = ev.user_id
 
-      ORDER BY u.created_at DESC
-    `);
+//       ORDER BY u.created_at DESC
+//     `);
 
-  } else if (["admin", "investigator"].includes(role)) {
+//   } else if (["admin", "investigator"].includes(role)) {
 
-    [rows] = await db.execute(`
-      SELECT DISTINCT
-        u.id,
-        u.first_name,
-        u.last_name,
-        u.email,
-        u.role,
-        u.email_verified,
-        u.created_at,
+//     [rows] = await db.execute(`
+//       SELECT DISTINCT
+//         u.id,
+//         u.first_name,
+//         u.last_name,
+//         u.email,
+//         u.role,
+//         u.email_verified,
+//         u.created_at,
 
-        COALESCE(ev.status, 'not_submitted') AS verification_status
-        ev.document_path AS proof_url
+//         COALESCE(ev.status, 'not_submitted') AS verification_status
+//         ev.document_path AS proof_url
 
-      FROM users u
-      JOIN complaints c
-        ON u.id = c.user_id
+//       FROM users u
+//       JOIN complaints c
+//         ON u.id = c.user_id
 
-      LEFT JOIN employee_verifications ev
-        ON u.id = ev.user_id
+//       LEFT JOIN employee_verifications ev
+//         ON u.id = ev.user_id
 
-      WHERE c.assigned_to = ?
+//       WHERE c.assigned_to = ?
 
-      ORDER BY u.created_at DESC
-    `, [userId]);
+//       ORDER BY u.created_at DESC
+//     `, [userId]);
 
-  } else {
-    rows = [];
+//   } else {
+//     rows = [];
+//   }
+
+//   return rows;
+// };
+
+exports.getUsers = async (req, res) => {
+  try {
+    const { verification, limit = 20, offset = 0 } = req.query;
+
+    const usersResult = await adminModel.getUsers(
+      req.user.role,
+      req.user.id,
+      verification,
+      parseInt(limit, 10),
+      parseInt(offset, 10)
+    );
+
+    res.json({
+      success: true,
+      data: usersResult.data,
+      total_count: usersResult.total_count
+    });
+
+  } catch (err) {
+    console.error("Get users error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
   }
-
-  return rows;
 };
