@@ -85,13 +85,19 @@ exports.register = async (req, res) => {
     console.log("Generated Verification link:", verificationLink);
 
     // Send Email (Wrapped in its own try/catch to prevent registration crash)
-    try {
-      await sendEmail(email, "Verify Your Email", html);
-      console.log(`📧 Verification email sent to: ${email}`);
-    } catch (mailError) {
-      console.error("❌ Email failed to send, but user was created:", mailError.message);
-    }
+    // try {
+    //   await sendEmail(email, "Verify Your Email", html);
+    //   console.log(`📧 Verification email sent to: ${email}`);
+    // } catch (mailError) {
+    //   console.error("❌ Email failed to send, but user was created:", mailError.message);
+    // }
 
+    const emailResult = await sendEmail(email, "Verify Your Email", html);
+    if (emailResult) {
+      console.log(`📧 Success: Email actually reached Google for: ${email}`);
+    } else {
+      console.log(`⚠️ Failure: Email was NOT sent to: ${email}`);
+    }
 
 
     
