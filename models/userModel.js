@@ -42,17 +42,19 @@ const findUserById = async (id) => {
 // VERIFY EMAIL
 const verifyUserEmail = async (token) => {
   const [rows] = await db.execute(
-    "SELECT id, email_verification_expires FROM users WHERE email_verification_token = ?",
+    "SELECT id FROM users WHERE email_verification_token = ? AND email_verification_expires > NOW()",
+    // "SELECT id, email_verification_expires FROM users WHERE email_verification_token = ?",
     [token]
   );
 
   if (!rows[0]) return null;
 
-  const user = rows[0];
+  // const user = rows[0].id;
+  const userId = rows[0].id
 
-  if (new Date(user.email_verification_expires) < new Date()) {
-    return null;
-  }
+  // if (new Date(user.email_verification_expires) < new Date()) {
+  //   return null;
+  // }
 
   await db.execute(
     `UPDATE users 
@@ -60,12 +62,14 @@ const verifyUserEmail = async (token) => {
          email_verification_token = NULL,
          email_verification_expires = NULL 
      WHERE id = ?`,
-     [user.id]
+    //  [user.id]
+    [userId]
     // [rows[0].id]
   );
 
   // return rows[0];
-  return user;
+  // return user;
+  return { id: userId }
 };
 
 
