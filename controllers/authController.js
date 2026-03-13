@@ -11,6 +11,7 @@ const {
   verifyUserEmail,
   updateLastLogin,
   updatePassword,
+  findUserById,
   verifyUserEmailById,
   updateVerificationToken
 } = require("../models/userModel");
@@ -289,29 +290,38 @@ exports.login = async (req, res) => {
   }
 };
 
-// // working code
-// // Update User profile
-// exports.updateProfile = async (req, res) => {
-//   try {
 
-//     const userId = req.user.id;
 
-//     await updateUserProfile(userId, req.body);
+// GET CURRENT USER (restore session)
+exports.getCurrentUser = async (req, res) => {
+  try {
+    const user = await findUserById(req.user.id);
 
-//     res.json({
-//       message: "Profile updated successfully"
-//     });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-//   } catch (err) {
+    res.json({
+      user: {
+        id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        role: user.role,
+        email_verified: user.email_verified,
+        profile_completed: user.profile_completed || false,
+        verification_submitted: user.verification_submitted || false,
+        verification_status: user.verification_status || null,
+        course_completed: user.course_completed || false,
+        lessons_completed: user.lessons_completed || false,
+      },
+    });
 
-//     console.error(err);
-
-//     res.status(500).json({
-//       message: "Server error"
-//     });
-
-//   }
-// };
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 
 exports.updateProfile = async (req, res) => {

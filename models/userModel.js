@@ -97,27 +97,6 @@ const updateLastLogin = async (userId) => {
 };
 
 
-// // Update user profile
-// const updateUserProfile = async (userId, profileData) => {
-//   const { job_title, department, company_name, phone, location } = profileData;
-
-//   await db.execute(
-//     `UPDATE users SET
-//       job_title = ?, 
-//       department = ?, 
-//       company_name = ?, 
-//       phone = ?, 
-//       location = ?, 
-//       profile_completed = TRUE
-//     WHERE id = ?`,
-//     [job_title, department, company_name, phone, location, userId]
-//   );
-//   await db.execute(
-//     `UPDATE users SET profile_completed = 1 WHERE id = ?`,
-//     [userId]
-//   );
-// };
-
 
 const updatePassword = async (userId, hashedPassword) => {
   await db.execute(
@@ -136,6 +115,8 @@ const verifyUserEmailById = async (userId) => {
     [userId]
   );
 };
+
+
 
 
 
