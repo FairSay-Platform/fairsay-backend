@@ -277,6 +277,8 @@ exports.login = async (req, res) => {
         role: user.role,
         email_verified: user.email_verified,
         profile_completed: user.profile_completed || false,
+        verification_submitted: user.verification_submitted || false, 
+        verification_status: user.verification_status || null,      
         course_completed: user.course_completed || false,
         lessons_completed: user.lessons_completed || false,
       },

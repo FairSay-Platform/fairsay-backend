@@ -127,9 +127,18 @@ const submitVerification = async (req, res) => {
       consentPrivacy: consentPrivacyBool
     });
 
+    // FLAG USER AS SUBMITTED
+    await db.execute(
+      `UPDATE users
+       SET verification_submitted = TRUE
+       WHERE id = ?`,
+      [req.user.id]
+    );
+
     res.json({
       message: "Verification submitted successfully",
-      status: "pending"
+      status: "pending",
+      verification_submitted: true
     });
 
   } catch (err) {

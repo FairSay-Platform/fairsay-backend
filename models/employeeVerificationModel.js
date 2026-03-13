@@ -66,6 +66,13 @@ const saveEmployeeVerification = async ({ userId, declaration, proofUrl, consent
     [userId, declaration, proofUrl, consentData, consentPrivacy]
   );
 
+  await db.execute(
+    `UPDATE users
+    SET verification_submitted = TRUE
+    WHERE id = ?`,
+    [req.user.id]
+  );
+
 };
 
 
