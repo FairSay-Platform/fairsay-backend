@@ -51,7 +51,6 @@ const db = require('../config/db');
 
 // USER SUBMIT VERIFICATION
 const saveEmployeeVerification = async ({ userId, declaration, proofUrl, consentData, consentPrivacy }) => {
-
   await db.execute(
     `INSERT INTO employee_verifications
       (user_id, declaration, document_path, consent_data, consent_privacy, status, created_at, updated_at)
@@ -66,15 +65,16 @@ const saveEmployeeVerification = async ({ userId, declaration, proofUrl, consent
     [userId, declaration, proofUrl, consentData, consentPrivacy]
   );
 
+  // Update users table to flag as submitted
   await db.execute(
     `UPDATE users
-    SET verification_submitted = TRUE
-    WHERE id = ?`,
-    [req.user.id]
+     SET verification_submitted = TRUE
+     WHERE id = ?`,
+    [userId]
   );
 
+  return true;
 };
-
 
 // ADMIN APPROVE USER
 const approveUser = async (userId, superAdminId, notes = null) => {
