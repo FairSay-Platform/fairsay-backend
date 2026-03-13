@@ -97,69 +97,25 @@ const updateLastLogin = async (userId) => {
 };
 
 
-// Update user profile
-const updateUserProfile = async (userId, profileData) => {
-  const { job_title, department, company_name, phone, location } = profileData;
+// // Update user profile
+// const updateUserProfile = async (userId, profileData) => {
+//   const { job_title, department, company_name, phone, location } = profileData;
 
-  await db.execute(
-    `UPDATE users SET
-      job_title = ?, 
-      department = ?, 
-      company_name = ?, 
-      phone = ?, 
-      location = ?, 
-      profile_completed = TRUE
-    WHERE id = ?`,
-    [job_title, department, company_name, phone, location, userId]
-  );
-};
-
-const upsertUserProfile = async (userId, profileData) => {
-  const { job_title, department, company_name, phone, location } = profileData;
-
-  await db.execute(
-    `INSERT INTO user_profiles 
-      (user_id, job_title, department, company_name, phone, location)
-     VALUES (?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       job_title = VALUES(job_title),
-       department = VALUES(department),
-       company_name = VALUES(company_name),
-       phone = VALUES(phone),
-       location = VALUES(location)`,
-    [userId, job_title, department, company_name, phone, location]
-  );
-};
-
-
-
-// // Approve user (Super Admin)
-// const approveUser = async (userId, superAdminId) => {
-//   // Check if a verification record already exists
-//   const [existing] = await db.execute(
-//     "SELECT id FROM admin_user_verifications WHERE user_id = ?",
+//   await db.execute(
+//     `UPDATE users SET
+//       job_title = ?, 
+//       department = ?, 
+//       company_name = ?, 
+//       phone = ?, 
+//       location = ?, 
+//       profile_completed = TRUE
+//     WHERE id = ?`,
+//     [job_title, department, company_name, phone, location, userId]
+//   );
+//   await db.execute(
+//     `UPDATE users SET profile_completed = 1 WHERE id = ?`,
 //     [userId]
 //   );
-
-//   if (existing.length > 0) {
-//     // Update existing record
-//     await db.execute(
-//       `UPDATE admin_user_verifications
-//        SET status = 'approved',
-//            reviewed_at = NOW(),
-//            reviewed_by = ?
-//        WHERE user_id = ?`,
-//       [superAdminId, userId]
-//     );
-//   } else {
-//     // Insert new record
-//     await db.execute(
-//       `INSERT INTO admin_user_verifications
-//          (user_id, status, reviewed_at, reviewed_by)
-//        VALUES (?, 'approved', NOW(), ?)`,
-//       [userId, superAdminId]
-//     );
-//   }
 // };
 
 
@@ -190,7 +146,6 @@ module.exports = {
   verifyUserEmail,
   updateVerificationToken,
   updateLastLogin,
-  updateUserProfile,
   updatePassword,
   verifyUserEmailById
 };

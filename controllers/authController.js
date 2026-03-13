@@ -287,23 +287,55 @@ exports.login = async (req, res) => {
   }
 };
 
+// // working code
+// // Update User profile
+// exports.updateProfile = async (req, res) => {
+//   try {
 
-// Update User profile
+//     const userId = req.user.id;
+
+//     await updateUserProfile(userId, req.body);
+
+//     res.json({
+//       message: "Profile updated successfully"
+//     });
+
+//   } catch (err) {
+
+//     console.error(err);
+
+//     res.status(500).json({
+//       message: "Server error"
+//     });
+
+//   }
+// };
+
+
 exports.updateProfile = async (req, res) => {
+
   try {
+
     const userId = req.user.id;
 
     await updateUserProfile(userId, req.body);
 
-    res.json({ message: "Profile updated successfully" });
+    res.json({
+      message: "Profile updated successfully",
+      profile_completed: true
+    });
 
   } catch (err) {
+
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+
+    res.status(500).json({
+      message: "Server error"
+    });
+
   }
+
 };
-
-
 
 
 //  FORGOT PASSWORD

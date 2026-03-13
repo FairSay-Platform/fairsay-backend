@@ -180,30 +180,3 @@ exports.getUsers = async (req, res) => {
 };
 
 
-
-// exports.getUsers = async (req, res) => {
-//   try {
-//     const { verification, limit = 20, offset = 0 } = req.query;
-
-//     const usersResult = await adminModel.getUsers(
-//       req.user.role,
-//       req.user.id,
-//       verification,
-//       parseInt(limit, 10),
-//       parseInt(offset, 10)
-//     );
-
-//     // FIX: Send the whole result object inside 'data'
-//     res.json({
-//       success: true,
-//       data: usersResult 
-//     });
-
-//   } catch (err) {
-//     console.error("Get users error:", err);
-//     res.status(500).json({
-//       success: false,
-//       message: "Server error"
-//     });
-//   }
-// };
