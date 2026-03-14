@@ -21,22 +21,49 @@ const createUser = async (
 };
 
 // Find user by email
+// const findUserByEmail = async (email) => {
+//   const [rows] = await db.execute(
+//     "SELECT * FROM users WHERE email = ?",
+//     [email]
+//   );
+//   return rows[0];
+// };
+
 const findUserByEmail = async (email) => {
   const [rows] = await db.execute(
-    "SELECT * FROM users WHERE email = ?",
+    `
+    SELECT 
+      u.*,
+      ev.status AS verification_status
+    FROM users u
+    LEFT JOIN employee_verifications ev
+      ON ev.user_id = u.id
+    WHERE u.email = ?
+    `,
     [email]
   );
+
   return rows[0];
 };
 
-// FIND USER BY ID
+
 const findUserById = async (id) => {
   const [rows] = await db.execute(
-    "SELECT * FROM users WHERE id = ?",
+    `
+    SELECT 
+      u.*,
+      ev.status AS verification_status
+    FROM users u
+    LEFT JOIN employee_verifications ev
+      ON ev.user_id = u.id
+    WHERE u.id = ?
+    `,
     [id]
   );
+
   return rows[0];
 };
+
 
 
 // VERIFY EMAIL
