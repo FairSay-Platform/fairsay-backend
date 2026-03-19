@@ -488,7 +488,160 @@ correct_answer: "A"
 
 
 
-{}
+{
+title: "Retaliation Protection",
+order: 3,
+
+lessons: [
+
+{
+lesson_order: 1,
+heading: "Introduction to Retaliation Protection",
+
+body: `Understanding retaliation protection helps employees and employers recognize that no one should suffer punishment for speaking up about workplace misconduct, asserting legal rights, or participating in investigations. This lesson explains what retaliation is, why it is unlawful, and the protections available under Nigerian law.`,
+
+learn_items: [
+"Define workplace retaliation in the Nigerian workplace context",
+"Recognize retaliatory behaviours and actions",
+"Understand legal protections under Nigerian labour and whistleblower laws",
+"Understand how retaliation affects individuals and workplace culture"
+],
+
+callout: {
+title: "Did You Know?",
+text: "Retaliation is one of the most common reasons employees withdraw workplace complaints because they fear punishment or career damage."
+},
+
+sections: [
+{
+title: "What Is Workplace Retaliation?",
+content: "Workplace retaliation occurs when an employer, supervisor, or colleague takes negative action against an employee because the employee reported misconduct, filed a complaint, participated in an investigation, refused unlawful conduct, or exercised a legal workplace right."
+},
+{
+title: "Protected Activities",
+content: "Employees are protected when they report harassment, discrimination, corruption, safety violations, or other workplace misconduct in good faith."
+}
+]
+},
+
+{
+lesson_order: 2,
+heading: "Legal Foundation for Retaliation Protection in Nigeria",
+
+body: `Several Nigerian legal frameworks protect employees who report misconduct or participate in investigations.`,
+
+callout: {
+title: "Did You Know?",
+text: "Nigeria’s whistleblowing policy allows individuals to report corruption confidentially and protects them from retaliation."
+},
+
+sections: [
+{
+title: "Constitutional Protection",
+content: "The Constitution guarantees dignity of the human person, freedom of expression and humane working conditions, reinforcing that employees should not suffer punishment for lawful reporting."
+},
+{
+title: "Labour Law Protection",
+content: "The Labour Act regulates employment relationships and may consider termination or disciplinary action connected to legal complaints as wrongful or unfair."
+},
+{
+title: "Whistleblower and Public Interest Protection",
+content: "The Public Interest Disclosure Act protects individuals who disclose wrongdoing in the public interest and prohibits retaliation such as dismissal, demotion or harassment."
+},
+{
+title: "Administrative Oversight",
+content: "The Public Complaints Commission (PCC) can investigate administrative injustice in both public and private organizations where retaliation may have occurred."
+}
+]
+},
+
+{
+lesson_order: 3,
+heading: "What Retaliation Looks Like",
+
+body: `Retaliation is not always obvious and may appear in both direct and indirect forms.`,
+
+callout: {
+title: "Did You Know?",
+text: "Many courts consider retaliation more serious than the original misconduct because it discourages accountability."
+},
+
+sections: [
+{
+title: "Direct Retaliation",
+content: "Examples include termination after filing a complaint, sudden demotion, salary reduction, or suspension without valid cause."
+},
+{
+title: "Indirect or Subtle Retaliation",
+content: "Examples include exclusion from meetings, negative performance reviews without justification, unreasonable workload increases, or transfers to unfavorable assignments."
+},
+{
+title: "Third-Party Retaliation",
+content: "This may involve encouraging colleagues to isolate the complainant, threatening future career opportunities, or blacklisting an employee within an industry."
+},
+{
+title: "When Retaliation Becomes Illegal",
+content: "Retaliation becomes unlawful when three elements exist: protected activity, adverse action and a connection between the two."
+}
+]
+}
+
+],
+
+quiz: {
+
+questions: [
+
+{
+question: "Retaliation only occurs if the original complaint is proven true.",
+option_a: "True",
+option_b: "False",
+option_c: null,
+option_d: null,
+correct_answer: "B"
+},
+
+{
+question: "Which of the following may qualify as retaliation?",
+option_a: "Terminating an employee after they report harassment",
+option_b: "Giving a fair performance review",
+option_c: "Approving annual leave",
+option_d: "Conducting scheduled training",
+correct_answer: "A"
+},
+
+{
+question: "The Public Interest Disclosure Act protects employees from:",
+option_a: "Workplace promotions",
+option_b: "Harassment and dismissal linked to whistleblowing",
+option_c: "Routine transfers",
+option_d: "Lawful disciplinary action",
+correct_answer: "B"
+},
+
+{
+question: "Retaliation can be subtle and indirect.",
+option_a: "True",
+option_b: "False",
+option_c: null,
+option_d: null,
+correct_answer: "A"
+},
+
+{
+question: "For retaliation to be established there must be:",
+option_a: "Protected activity and adverse action",
+option_b: "High salary",
+option_c: "A written complaint only",
+option_d: "Office conflict",
+correct_answer: "A"
+}
+
+]
+
+}
+
+}
 
 
 

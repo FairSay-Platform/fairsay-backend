@@ -15,8 +15,6 @@ const {
 } = require("../controllers/adminController");
 
 
-// router.get("/users", verifyToken, getUsers);
-
 // Admin / Investigator / Super Admin
 router.get(
   "/users",

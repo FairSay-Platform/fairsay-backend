@@ -1,64 +1,23 @@
-// const express = require("express");
-// const router = express.Router();
-// const learningController = require("../controllers/learningController");
-
-// // courses
-// router.get("/courses", learningController.getCourses);
-
-// // modules in a course
-// router.get("/courses/:slug/modules", learningController.getModulesByCourse);
-
-// // module content
-// router.get("/modules/:id", learningController.getModuleContent);
-
-// // module quiz
-// router.get("/modules/:id/quiz", learningController.getQuiz);
-
-// // submit quiz
-// router.post("/quizzes/:id/submit", learningController.submitQuiz);
-
-// // mark module complete
-// router.post("/modules/:id/complete", learningController.completeModule);
-
-// module.exports = router;
-
-
 const express = require("express");
 const router = express.Router();
+const {
+  getLearningState,
+  updateLessonProgress,
+  completeLesson,
+  submitQuiz
+} = require("../controllers/learningController");
+const { authMiddleware } = require("../middleware/authMiddleware");
+const verifyToken = require("../middleware/authMiddleware");
+// Get all user learning info
+router.get("/state", verifyToken, getLearningState);
 
-const learningController = require("../controllers/learningController");
+// Track lesson started / in progress 
+router.post("/progress", verifyToken, updateLessonProgress);
 
-// ===============================
-// COURSES
-// ===============================
+// Mark lesson completed
+router.post("/:lessonId/complete", verifyToken, completeLesson);
 
-// Get all courses
-router.get("/courses", learningController.getCourses);
-
-// Get modules in a course
-router.get("/courses/:slug/modules", learningController.getModulesByCourse);
-
-
-// ===============================
-// MODULES
-// ===============================
-
-// Get module content
-router.get("/modules/:id", learningController.getModuleContent);
-
-// Mark module complete
-router.post("/modules/:id/complete", learningController.completeModule);
-
-
-// ===============================
-// QUIZ
-// ===============================
-
-// Get quiz for module
-router.get("/modules/:id/quiz", learningController.getQuiz);
-
-// Submit quiz answers
-router.post("/quizzes/:id/submit", learningController.submitQuiz);
-
+// Submit quiz
+router.post("/quiz", verifyToken, submitQuiz);
 
 module.exports = router;

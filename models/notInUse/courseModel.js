@@ -15,7 +15,7 @@
 
 // module.exports = { createCourse, getAllCourses };
 
-const db = require("../config/db");
+const db = require("../../config/db");
 
 const createCourse = async (title, description) => {
   const [result] = await db.execute(

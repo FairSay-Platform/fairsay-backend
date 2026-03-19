@@ -1,187 +1,146 @@
-// const db = require("../config/db");
+const db = require("../config/db");
 
-// exports.getCourses = async (req, res) => {
-//   try {
-//     const [courses] = await db.query("SELECT * FROM courses ORDER BY course_order");
+// -------------------
+// GET USER LEARNING STATE
+// -------------------
+const getLearningState = async (req, res) => {
+  const userId = req.user.id;
 
-//     res.json({
-//       success: true,
-//       data: courses
-//     });
-
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-
-const learningModel = require("../models/learningModel");
-
-
-// GET COURSES
-exports.getCourses = async (req, res) => {
   try {
+    // Get completed lessons
+    const [lessons] = await db.query(
+      "SELECT lesson_id, course_slug, lesson_number, completed_at FROM user_lesson_progress WHERE user_id = ? AND completed = TRUE",
+      [userId]
+    );
 
-    const courses = await learningModel.getCourses();
+    // Get quiz status
+    const [quizzes] = await db.query(
+      "SELECT course_slug, best_score, is_passed, attempts_count, last_attempt_at FROM user_quiz_status WHERE user_id = ?",
+      [userId]
+    );
 
-    res.json({
-      success: true,
-      data: courses
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.json({ completedLessons: lessons, quizStatuses: quizzes });
+  } catch (error) {
+    console.error("Get learning state error:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
+// -------------------
+// START / UPDATE LESSON PROGRESS 
+// -------------------
+const updateLessonProgress = async (req, res) => {
+  const { courseSlug, lessonNumber, lessonId } = req.body;
+  const userId = req.user.id;
 
-// GET MODULES BY COURSE
-exports.getModulesByCourse = async (req, res) => {
   try {
-
-    const { slug } = req.params;
-
-    const modules = await learningModel.getModulesByCourse(slug);
-
-    res.json({
-      success: true,
-      data: modules
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-
-exports.getModuleContent = async (req, res) => {
-  try {
-
-    const { id } = req.params;
-
-    const module = await learningModel.getModuleContent(id);
-
-    res.json({
-      success: true,
-      data: module
-    });
-
-  } catch (err) {
-
-    console.error(err);
-
-    res.status(500).json({
-      message: "Server error"
-    });
-
-  }
-};
-
-
-// // GET MODULE CONTENT
-// exports.getModuleContent = async (req, res) => {
-//   try {
-
-//     const moduleId = req.params.id;
-
-//     const module = await learningModel.getModuleContent(moduleId);
-
-//     res.json({
-//       success: true,
-//       data: module
-//     });
-
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-
-// GET QUIZ
-exports.getQuiz = async (req, res) => {
-  try {
-
-    const moduleId = req.params.id;
-
-    const quiz = await learningModel.getQuiz(moduleId);
-
-    res.json({
-      success: true,
-      data: quiz
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-
-// SUBMIT QUIZ
-exports.submitQuiz = async (req, res) => {
-  try {
-
-    const quizId = req.params.id;
-    const { userId, answers } = req.body;
-
-    const result = await learningModel.submitQuiz(quizId, userId, answers);
-
-    res.json({
-      success: true,
-      data: result
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-
-// // COMPLETE MODULE
-// exports.completeModule = async (req, res) => {
-//   try {
-
-//     const moduleId = req.params.id;
-//     const { userId } = req.body;
-
-//     await learningModel.completeModule(moduleId, userId);
-
-//     res.json({
-//       success: true,
-//       message: "Module completed"
-//     });
-
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-exports.completeModule = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { user_id } = req.body;
-
-    // Check if module exists first
-    const module = await learningModel.getModuleContent(id);
-    if (!module) {
-      return res.status(404).json({
-        success: false,
-        message: "Module not found"
-      });
-    }
-
-    await learningModel.completeModule(user_id, id);
+    await db.query(
+      `INSERT IGNORE INTO user_lesson_progress (user_id, course_slug, lesson_number, lesson_id)
+       VALUES (?, ?, ?, ?)`,
+      [userId, courseSlug, lessonNumber, lessonId]
+    );
 
     res.json({ success: true });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
+  } catch (error) {
+    console.error("Update lesson progress error:", error);
+    res.status(500).json({ error: error.message });
   }
+};
+
+// -------------------
+// COMPLETE LESSON
+// -------------------
+const completeLesson = async (req, res) => {
+  const userId = req.user.id;
+  const lessonId = parseInt(req.params.lessonId);
+
+  const { courseSlug, lessonNumber } = req.body; 
+  console.log("BODY:", req.body);
+
+  try {
+    const [rows] = await db.execute(
+      `SELECT id, completed FROM user_lesson_progress 
+       WHERE user_id = ? AND lesson_id = ?`,
+      [userId, lessonId]
+    );
+
+    if (rows.length > 0) {
+      if (!rows[0].completed) {
+        await db.execute(
+          `UPDATE user_lesson_progress 
+           SET completed = TRUE, completed_at = NOW() 
+           WHERE id = ?`,
+          [rows[0].id]
+        );
+      }
+    } else {
+      await db.execute(
+        `INSERT INTO user_lesson_progress 
+        (user_id, lesson_id, course_slug, lesson_number, completed, completed_at)
+         VALUES (?, ?, ?, ?, TRUE, NOW())`,
+        [userId, lessonId, courseSlug, lessonNumber]
+      );
+    }
+
+    const [countRows] = await db.execute(
+      `SELECT COUNT(*) AS completed_count
+       FROM user_lesson_progress
+       WHERE user_id = ? AND completed = TRUE`,
+      [userId]
+    );
+
+    const lessonsCompleted = countRows[0].completed_count;
+
+    await db.execute(
+      `UPDATE users SET lessons_completed = ? WHERE id = ?`,
+      [lessonsCompleted, userId]
+    );
+
+    res.json({
+      message: "Lesson marked as completed",
+      lessons_completed: lessonsCompleted,
+      lesson_id: lessonId
+    });
+
+  } catch (error) {
+    console.error("Complete lesson error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// -------------------
+// SUBMIT QUIZ
+// -------------------
+const submitQuiz = async (req, res) => {
+  const { courseSlug, score } = req.body;
+  const userId = req.user.id;
+  const PASS_MARK = 70;
+
+  try {
+    const isPassed = score >= PASS_MARK;
+
+    await db.query(
+      `INSERT INTO user_quiz_status 
+        (user_id, course_slug, best_score, is_passed, attempts_count, last_attempt_at) 
+       VALUES (?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
+       ON DUPLICATE KEY UPDATE 
+         attempts_count = attempts_count + 1,
+         best_score = GREATEST(best_score, ?),
+         is_passed = IF(best_score >= ? OR ? >= ?, true, false),
+         last_attempt_at = CURRENT_TIMESTAMP`,
+      [userId, courseSlug, score, isPassed, score, PASS_MARK, score, PASS_MARK]
+    );
+
+    res.json({ success: true, isPassed });
+  } catch (error) {
+    console.error("Submit quiz error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {
+  getLearningState,
+  updateLessonProgress,
+  completeLesson,
+  submitQuiz
 };

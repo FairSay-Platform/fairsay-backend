@@ -2,14 +2,15 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const db = require("./config/db");
-const learningRoutes = require("./routes/learningRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const authRoutes = require("./routes/authRoutes");
-// const progressRoutes = require("./routes/progressRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
 const employeeVerificationRoutes = require('./routes/employeeVerificationRoutes');
 const adminRoutes = require("./routes/adminRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const learningRoutes = require("./routes/learningRoutes");
+
+
 
 const app = express();
 const path = require("path");
@@ -25,14 +26,11 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/complaints", complaintRoutes);
-
-
+app.use("/api/learning", learningRoutes);
 app.use("/api/ai", aiRoutes);
 app.use('/api/verification', employeeVerificationRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/learning", learningRoutes);
 app.use("/api/notifications", notificationRoutes);
-
 app.get("/", (req, res) => {
   res.send("FairSay API Running");
 });

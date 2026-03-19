@@ -12,3 +12,15 @@
 // router.post("/:quiz_id/submit", verifyToken, quizController.submitQuiz);
 
 // module.exports = router;
+
+
+
+const express = require("express");
+const router = express.Router();
+
+const { submitQuiz } = require("../controllers/quizController");
+const verifyToken = require("../../middleware/authMiddleware");
+
+router.post("/submit", verifyToken, submitQuiz);
+
+module.exports = router;

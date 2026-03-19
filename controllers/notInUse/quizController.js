@@ -121,3 +121,67 @@
 //   getQuiz,
 //   submitQuiz,
 // };
+
+
+
+const quizModel = require("../../models/notInUse/quizModel");
+const progressModel = require("../../models/notInUse/progressModel");
+
+const PASS_MARK = 80;
+
+const submitQuiz = async (req, res) => {
+
+  try {
+
+    const userId = req.user.id;
+    const { module_id, score } = req.body;
+
+    if (!module_id || score === undefined) {
+  return res.status(400).json({
+    message: "module_id and score are required"
+  });
+}
+
+    const passed = score >= PASS_MARK;
+
+    console.log("Quiz submission:", {
+  userId,
+  module_id,
+  score
+});
+
+    await quizModel.createQuizAttempt(
+      userId,
+      module_id,
+      score,
+      passed
+    );
+
+    if (passed) {
+      await progressModel.completeModule(
+        userId,
+        module_id
+      );
+    }
+
+    return res.json({
+      score,
+      passed,
+      message: passed ? "Quiz passed" : "Quiz failed"
+    });
+
+  } catch (error) {
+
+    console.error("Quiz submission error:", error);
+
+    return res.status(500).json({
+      message: "Error submitting quiz"
+    });
+
+  }
+
+};
+
+module.exports = {
+  submitQuiz
+};

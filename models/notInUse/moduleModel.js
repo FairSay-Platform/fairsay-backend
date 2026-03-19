@@ -40,7 +40,7 @@
 // module.exports = { createModule, getModulesByCourse };
 
 
-const db = require("../config/db");
+const db = require("../../config/db");
 
 const createModule = async (course_id, title, content, order) => {
   const [result] = await db.execute(
