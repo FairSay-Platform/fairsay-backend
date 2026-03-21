@@ -8,6 +8,7 @@ const {
 } = require("../controllers/learningController");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const verifyToken = require("../middleware/authMiddleware");
+
 // Get all user learning info
 router.get("/state", verifyToken, getLearningState);
 
