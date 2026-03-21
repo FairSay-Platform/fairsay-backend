@@ -50,6 +50,7 @@ const sendEmail = async (to, subject, html) => {
         user: process.env.EMAIL_USER, // Your email address
         pass: process.env.EMAIL_PASS, // Your App Password (not your regular password)
       },
+      family: 4
     });
 
     const mailOptions = {
