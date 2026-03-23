@@ -2,26 +2,26 @@ const db = require("../config/db");
 
 const complaintModel = {
   // whistleblower report submission
-submitWhistleblowerReport: async (connection, userId, trackingId, data) => {
-  const query = `
-    INSERT INTO complaints (
-      user_id, tracking_id, violation_category, title, description, 
-      date_of_incident, location, status, current_step, 
-      submitted_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'submitted', 5, NOW())
-  `;
-  const params = [
-    userId,
-    trackingId,
-    data.violationType, 
-    `Anonymous Report: ${data.violationType}`,
-    data.description,
-    data.dateOccurred || null,
-    data.location || null
-  ];
-  const [result] = await connection.execute(query, params);
-  return result.insertId;
-},
+  submitWhistleblowerReport: async (connection, userId, trackingId, data) => {
+    const query = `
+      INSERT INTO complaints (
+        user_id, tracking_id, violation_category, title, description, 
+        date_of_incident, location, status, current_step, 
+        submitted_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'submitted', 5, NOW())
+    `;
+    const params = [
+      userId,
+      trackingId,
+      data.violationType, 
+      `Anonymous Report: ${data.violationType}`,
+      data.description,
+      data.dateOccurred || null,
+      data.location || null
+    ];
+    const [result] = await connection.execute(query, params);
+    return result.insertId;
+  },
 
 
   // STEP 1: Create Draft
@@ -61,13 +61,13 @@ submitWhistleblowerReport: async (connection, userId, trackingId, data) => {
   ]);
 
   return result;
-},
+  },
 
   getComplaintById: async (id) => {
   const query = `SELECT * FROM complaints WHERE id = ?`;
   const [rows] = await db.execute(query, [id]);
   return rows[0];
-},
+  },
 
 
   // STEP 5: Transactional Helpers (Using specific connection)
@@ -75,6 +75,33 @@ submitWhistleblowerReport: async (connection, userId, trackingId, data) => {
     const [rows] = await connection.execute("SELECT * FROM complaints WHERE id = ? FOR UPDATE", [id]);
     return rows[0];
   },
+
+  getFullComplaintById: async (id) => {
+  const [complaints] = await db.execute(
+    "SELECT * FROM complaints WHERE id = ?",
+    [id]
+  );
+
+  if (complaints.length === 0) return null;
+
+  const complaint = complaints[0];
+
+  const [evidence] = await db.execute(
+    "SELECT * FROM complaint_evidence WHERE complaint_id = ?",
+    [id]
+  );
+
+  const [parties] = await db.execute(
+    "SELECT * FROM complaint_parties WHERE complaint_id = ?",
+    [id]
+  );
+
+  return {
+    ...complaint,
+    evidence,
+    parties
+  };
+},
 
   markComplaintSubmitted: async (connection, id, trackingId) => {
   await connection.execute(
@@ -89,16 +116,7 @@ submitWhistleblowerReport: async (connection, userId, trackingId, data) => {
     `,
     [trackingId, id]
   );
-},
-
-  // markComplaintSubmitted: async (connection, id, trackingId) => {
-  //   await connection.execute(
-  //     `UPDATE complaints 
-  //      SET is_submitted = 1, tracking_id = ?, status = 'submitted', current_step = 5, submitted_at = NOW() 
-  //      WHERE id = ?`,
-  //     [trackingId, id]
-  //   );
-  // },
+  },
 
   insertStatusHistory: async (connection, complaintId, userId, status) => {
     await connection.execute(
@@ -107,6 +125,8 @@ submitWhistleblowerReport: async (connection, userId, trackingId, data) => {
     );
   }
 };
+
+
 
 
 module.exports = complaintModel;

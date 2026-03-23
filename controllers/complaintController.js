@@ -167,10 +167,19 @@ exports.submitComplaint = async (req, res) => {
 exports.getMyComplaints = async (req, res) => {
   try {
     const [complaints] = await db.execute(
-      "SELECT * FROM complaints WHERE user_id = ? ORDER BY created_at DESC", 
+      "SELECT id FROM complaints WHERE user_id = ? ORDER BY created_at DESC",
       [req.user.id]
     );
-    res.json({ complaints });
+
+    const fullComplaints = [];
+
+    for (let c of complaints) {
+      const full = await complaintModel.getFullComplaintById(c.id);
+      fullComplaints.push(full);
+    }
+
+    res.json({ complaints: fullComplaints });
+
   } catch (err) {
     res.status(500).json({ message: "Error fetching complaints" });
   }
@@ -181,7 +190,7 @@ exports.getComplaint = async (req, res) => {
   try {
     const { id } = req.params;
     const [rows] = await db.execute(
-      "SELECT * FROM complaints WHERE id = ? OR tracking_id = ?", 
+      "SELECT id FROM complaints WHERE id = ? OR tracking_id = ?",
       [id, id]
     );
 
@@ -189,8 +198,13 @@ exports.getComplaint = async (req, res) => {
       return res.status(404).json({ message: "Complaint not found" });
     }
 
-    res.json({ complaint: rows[0] });
+    const complaint = await complaintModel.getFullComplaintById(rows[0].id);
+
+    res.json({ complaint });
+
   } catch (err) {
     res.status(500).json({ message: "Error fetching complaint" });
   }
 };
+
+

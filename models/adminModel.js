@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const complaintModel = require("./complaintModel"); 
 
 // Get complaint by ID
 exports.getComplaintById = async (complaintId) => {
@@ -42,21 +43,36 @@ exports.insertReport = async (complaintId, userId, report) => {
 // Get assigned complaints
 exports.getAssignedComplaints = async (userId) => {
   const [rows] = await db.execute(
-    `SELECT * FROM complaints
+    `SELECT id FROM complaints
      WHERE assigned_to = ?
      ORDER BY created_at DESC`,
     [userId]
   );
-  return rows;
+
+  const fullComplaints = [];
+
+  for (let row of rows) {
+    const full = await complaintModel.getFullComplaintById(row.id);
+    fullComplaints.push(full);
+  }
+
+  return fullComplaints;
 };
 
 // Get all complaints (Super Admin)
 exports.getAllComplaints = async () => {
   const [rows] = await db.execute(
-    `SELECT * FROM complaints
-     ORDER BY created_at DESC`
+    `SELECT id FROM complaints ORDER BY created_at DESC`
   );
-  return rows;
+
+  const fullComplaints = [];
+
+  for (let row of rows) {
+    const full = await complaintModel.getFullComplaintById(row.id);
+    fullComplaints.push(full);
+  }
+
+  return fullComplaints;
 };
 
 // Dashboard stats
@@ -89,7 +105,6 @@ exports.getUsers = async (role, userId, verification, limit = 20, offset = 0) =>
   let params = [];
   let countParams = [];
 
-  // 1. Force strict integer types for MySQL LIMIT/OFFSET
   const cleanLimit = parseInt(limit, 10) || 20;
   const cleanOffset = parseInt(offset, 10) || 0;
 
