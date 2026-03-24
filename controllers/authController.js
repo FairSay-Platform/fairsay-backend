@@ -27,87 +27,6 @@ const {
 
 
 
-// REGISTER
-// exports.register = async (req, res) => {
-//   try {
-
-//     let { first_name, last_name, email, password } = req.body;
-
-//     email = email.trim().toLowerCase();
-
-
-//     if (!first_name || !last_name || !email || !password) {
-//       return res.status(400).json({ message: "All fields are required" });
-//     }
-
-//     const existingUser = await findUserByEmail(email);
-
-//     if (existingUser) {
-//       return res.status(400).json({ message: "Email already registered" });
-//     }
-
-//     const password_hash = await bcrypt.hash(password, 10);
-
-//     const emailToken = crypto.randomBytes(32).toString("hex");
-
-//     const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
-
-//     await createUser(
-//       first_name,
-//       last_name,
-//       email,
-//       password_hash,
-//       "user",
-//       emailToken,
-//       tokenExpiry
-//     );
- 
-
-
-
-//     // SEND VERIFICATION EMAIL
-//     const verificationLink =
-//       `${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailToken}`;
-
-//       const html = `
-//       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-//         <h2>Email Verification</h2>
-//         <p>Hello ${first_name},</p>
-//         <p>Please click the button below to verify your email address and complete your registration:</p>
-//         <p>
-//           <a href="${verificationLink}" target="_blank"
-//              style="display:inline-block;padding:12px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">
-//              Verify Email
-//           </a>
-//         </p>
-//         <p>If the button doesn't work, copy and paste this link into your browser:</p>
-//         <p style="word-break: break-all; color: #4CAF50;">${verificationLink}</p>
-//         <p>This link expires in 24 hours.</p>
-//         <hr style="border:none;border-top:1px solid #eee;" />
-//         <p style="font-size: 0.8em; color: #888;">If you did not create an account, please ignore this email.</p>
-//       </div>
-//     `;
-
-//     console.log("Generated Verification link:", verificationLink);
-
-
-//     const emailResult = await sendEmail(email, "Verify Your Email", html);
-//     if (emailResult) {
-//       console.log(`📧 Success: Email actually reached Google for: ${email}`);
-//     } else {
-//       console.log(`⚠️ Failure: Email was NOT sent to: ${email}`);
-//     }
-
-//     res.status(201).json({
-//       message: "User registered successfully. Please verify your email.",
-//     });
-
-//   } catch (error) {
-//     console.error("Register error:", error); 
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
 exports.register = async (req, res) => {
   try {
     let { first_name, last_name, email, password } = req.body;
@@ -126,53 +45,103 @@ exports.register = async (req, res) => {
 
     const password_hash = await bcrypt.hash(password, 10);
 
-    // 🔥 STEP 1: Generate RAW token
-    const rawToken = crypto.randomBytes(32).toString("hex");
-
-    // 🔥 STEP 2: Hash token
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(rawToken)
-      .digest("hex");
-
-    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-    // 🔥 STEP 3: Store HASHED token
+    // Create user FIRST
     await createUser(
       first_name,
       last_name,
       email,
       password_hash,
       "user",
-      hashedToken,
-      tokenExpiry
+      null,   // no token needed for now
+      null
     );
 
-    // 🔥 STEP 4: Send RAW token
-    const verificationLink =
-      `${process.env.BACKEND_URL}/api/auth/verify-email?token=${rawToken}`;
+    // Try sending email (but DO NOT break anything if it fails)
+    try {
+      const html = `<h2>Welcome ${first_name}</h2><p>Your account has been created.</p>`;
+      await sendEmail(email, "Welcome to Fairsay", html);
+      console.log(" Email sent");
+    } catch (emailError) {
+      console.error(" Email failed but user created:", emailError.message);
+    }
 
-    console.log("Generated Verification link:", verificationLink);
-
-    const html = `
-      <h2>Email Verification</h2>
-      <p>Hello ${first_name},</p>
-      <p>Please verify your email:</p>
-      <a href="${verificationLink}">Verify Email</a>
-      <p>This link expires in 24 hours.</p>
-    `;
-
-    await sendEmail(email, "Verify Your Email", html);
-
+    // ALWAYS SUCCESS RESPONSE
     res.status(201).json({
-      message: "User registered successfully. Please verify your email.",
+      message: "Registration successful. You can now login.",
     });
 
   } catch (error) {
-    console.error("Register error:", error); 
+    console.error("Register error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+// exports.register = async (req, res) => {
+//   try {
+//     let { first_name, last_name, email, password } = req.body;
+
+//     email = email.trim().toLowerCase();
+
+//     if (!first_name || !last_name || !email || !password) {
+//       return res.status(400).json({ message: "All fields are required" });
+//     }
+
+//     const existingUser = await findUserByEmail(email);
+
+//     if (existingUser) {
+//       return res.status(400).json({ message: "Email already registered" });
+//     }
+
+//     const password_hash = await bcrypt.hash(password, 10);
+
+//     // STEP 1: Generate RAW token
+//     const rawToken = crypto.randomBytes(32).toString("hex");
+
+//     // STEP 2: Hash token
+//     const hashedToken = crypto
+//       .createHash("sha256")
+//       .update(rawToken)
+//       .digest("hex");
+
+//     const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+//     // STEP 3: Store HASHED token
+//     await createUser(
+//       first_name,
+//       last_name,
+//       email,
+//       password_hash,
+//       "user",
+//       hashedToken,
+//       tokenExpiry
+//     );
+
+//     // STEP 4: Send RAW token
+//     const verificationLink =
+//       `${process.env.BACKEND_URL}/api/auth/verify-email?token=${rawToken}`;
+
+//     console.log("Generated Verification link:", verificationLink);
+
+//     const html = `
+//       <h2>Email Verification</h2>
+//       <p>Hello ${first_name},</p>
+//       <p>Please verify your email:</p>
+//       <a href="${verificationLink}">Verify Email</a>
+//       <p>This link expires in 24 hours.</p>
+//     `;
+
+//     await sendEmail(email, "Verify Your Email", html);
+
+//     res.status(201).json({
+//       message: "User registered successfully. Please verify your email.",
+//     });
+
+//   } catch (error) {
+//     console.error("Register error:", error); 
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
 
 
 
@@ -203,66 +172,6 @@ exports.verifyEmail = async (req, res) => {
 };
 
 
-// // RESEND VERIFICATION EMAIL
-// exports.resendVerificationEmail = async (req, res) => {
-
-//   try {
-
-//     const { email } = req.body;
-
-//     const user = await findUserByEmail(email);
-
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     if (user.email_verified) {
-//       return res.status(400).json({
-//         message: "Email already verified"
-//       });
-//     }
-
-//     const emailToken = crypto.randomBytes(32).toString("hex");
-
-//     const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-//     await updateVerificationToken(
-//       user.id,
-//       emailToken,
-//       tokenExpiry
-//     );
-
-//     const verificationLink =
-//       `${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailToken}`;
-
-//     const html = `
-//       <h2>Email Verification</h2>
-//       <p>Hello ${user.first_name},</p>
-//       <p>Please verify your email:</p>
-//       <a href="${verificationLink}"
-//       style="padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
-//       Verify Email
-//       </a>
-//       <p>This link expires in 24 hours.</p>
-//     `;
-
-//     await sendEmail(email, "Verify Your Email", html);
-
-//     res.json({
-//       message: "Verification email resent successfully"
-//     });
-
-//   } catch (error) {
-
-//     console.error("Resend verification error:", error);
-
-//     res.status(500).json({ message: "Server error" });
-
-//   }
-
-// };
-
-
 exports.resendVerificationEmail = async (req, res) => {
   try {
     const { email } = req.body;
@@ -279,10 +188,10 @@ exports.resendVerificationEmail = async (req, res) => {
       });
     }
 
-    // 🔥 Generate raw token
+    // Generate raw token
     const rawToken = crypto.randomBytes(32).toString("hex");
 
-    // 🔥 Hash it
+    // Hash it
     const hashedToken = crypto
       .createHash("sha256")
       .update(rawToken)
@@ -290,14 +199,14 @@ exports.resendVerificationEmail = async (req, res) => {
 
     const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    // 🔥 Store hashed
+    // Store hashed
     await updateVerificationToken(
       user.id,
       hashedToken,
       tokenExpiry
     );
 
-    // 🔥 Send raw
+    // Send raw
     const verificationLink =
       `${process.env.BACKEND_URL}/api/auth/verify-email?token=${rawToken}`;
 
@@ -323,34 +232,114 @@ exports.resendVerificationEmail = async (req, res) => {
 };
 
 
-// LOGIN
+// // LOGIN
+// exports.login = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     if (!email || !password) {
+//       return res
+//         .status(400)
+//         .json({ message: "Email and password are required" });
+//     }
+
+//     const user = await findUserByEmail(email);
+
+//     if (!user) {
+//       return res.status(400).json({ message: "Invalid credentials" });
+//     }
+
+//     // if (!user.email_verified) {
+//     //   return res.status(403).json({
+//     //     message: "Please verify your email before login",
+//     //   });
+//     // }
+
+
+//     // Optional email verification — allow login even if not verified
+//     if (!user.email_verified) {
+//       console.log("⚠️ User logged in without email verification");
+//       // You can also send a flag in the response
+//     }
+
+//     if (!user.is_active) {
+//       return res.status(403).json({
+//         message: "Account is deactivated",
+//       });
+//     }
+
+//     const validPassword = await bcrypt.compare(password, user.password_hash);
+
+//     if (!validPassword) {
+//       return res.status(400).json({ message: "Invalid credentials" });
+//     }
+
+//     await updateLastLogin(user.id);
+
+//     const token = jwt.sign(
+//       { id: user.id, role: user.role },
+//       process.env.JWT_SECRET,
+//       { expiresIn: "1d" }
+//     );
+
+//     // res.json({
+//     //   message: "Login successful",
+//     //   token,
+//     //   user: {
+//     //     id: user.id,
+//     //     first_name: user.first_name,
+//     //     last_name: user.last_name,
+//     //     email: user.email,
+//     //     role: user.role,
+//     //     email_verified: user.email_verified,
+//     //     profile_completed: user.profile_completed || false,
+//     //     verification_submitted: user.verification_submitted || false, 
+//     //     verification_status: user.verification_status || null,      
+//     //     course_completed: user.course_completed || false,
+//     //     lessons_completed: user.lessons_completed || false,
+//     //   },
+//     // });
+//     res.json({
+//   message: "Login successful",
+//   token,
+//   can_access: true,
+//   email_verified: user.email_verified,
+//   user: {
+//     id: user.id,
+//     first_name: user.first_name,
+//     last_name: user.last_name,
+//     email: user.email,
+//     role: user.role,
+//     profile_completed: user.profile_completed || false,
+//     verification_submitted: user.verification_submitted || false,
+//     lessons_completed: user.lessons_completed || false,
+//   },
+// });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
+
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+
+    email = email?.trim().toLowerCase();
 
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required" });
+      return res.status(400).json({
+        message: "Email and password are required",
+      });
     }
 
     const user = await findUserByEmail(email);
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    // if (!user.email_verified) {
-    //   return res.status(403).json({
-    //     message: "Please verify your email before login",
-    //   });
-    // }
-
-
-    // Optional email verification — allow login even if not verified
-    if (!user.email_verified) {
-      console.log("⚠️ User logged in without email verification");
-      // You can also send a flag in the response
+      return res.status(400).json({
+        message: "Invalid credentials",
+      });
     }
 
     if (!user.is_active) {
@@ -362,62 +351,45 @@ exports.login = async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password_hash);
 
     if (!validPassword) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({
+        message: "Invalid credentials",
+      });
     }
 
+    // ✅ Update last login
     await updateLastLogin(user.id);
 
+    // ✅ Generate JWT
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    // res.json({
-    //   message: "Login successful",
-    //   token,
-    //   user: {
-    //     id: user.id,
-    //     first_name: user.first_name,
-    //     last_name: user.last_name,
-    //     email: user.email,
-    //     role: user.role,
-    //     email_verified: user.email_verified,
-    //     profile_completed: user.profile_completed || false,
-    //     verification_submitted: user.verification_submitted || false, 
-    //     verification_status: user.verification_status || null,      
-    //     course_completed: user.course_completed || false,
-    //     lessons_completed: user.lessons_completed || false,
-    //   },
-    // });
+    // ✅ Clean response
     res.json({
-  message: "Login successful",
-  token,
-  can_access: true,
-  email_verified: user.email_verified,
-  user: {
-    id: user.id,
-    first_name: user.first_name,
-    last_name: user.last_name,
-    email: user.email,
-    role: user.role,
-    profile_completed: user.profile_completed || false,
-    verification_submitted: user.verification_submitted || false,
-    lessons_completed: user.lessons_completed || false,
-  },
-});
+      message: "Login successful",
+      token,
+      user: {
+        id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        role: user.role,
+        email_verified: user.email_verified, // optional (keep if frontend uses it)
+        profile_completed: user.profile_completed || false,
+        verification_submitted: user.verification_submitted || false,
+        lessons_completed: user.lessons_completed || 0,
+      },
+    });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Login error:", error);
+    res.status(500).json({
+      message: "Server error",
+    });
   }
 };
-
-
-
-
-
-
-
 
 
 

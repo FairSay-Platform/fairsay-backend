@@ -1,25 +1,57 @@
 const adminModel = require("../models/adminModel");
-
+const db = require("../config/db");
 
 // =====================================
 // Assign Complaint (Super Admin Only)
 // =====================================
+// exports.assignComplaint = async (req, res) => {
+//   try {
+//     const complaintId = parseInt(req.params.id, 10);
+//     const { assignedTo } = req.body;
+
+//     if (!assignedTo) {
+//       return res.status(400).json({ message: "assignedTo is required" });
+//     }
+
+//     const complaint = await adminModel.getComplaintById(complaintId);
+
+//     if (!complaint) {
+//       return res.status(404).json({ message: "Complaint not found" });
+//     }
+
+//     await adminModel.assignComplaint(complaintId, assignedTo);
+
+//     res.json({ message: "Complaint assigned successfully" });
+
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Error assigning complaint" });
+//   }
+// };
+
+
 exports.assignComplaint = async (req, res) => {
   try {
-    const complaintId = parseInt(req.params.id, 10);
+    const { id } = req.params;
     const { assignedTo } = req.body;
 
     if (!assignedTo) {
       return res.status(400).json({ message: "assignedTo is required" });
     }
 
-    const complaint = await adminModel.getComplaintById(complaintId);
+    const query = isNaN(id)
+      ? "SELECT * FROM complaints WHERE tracking_id = ?"
+      : "SELECT * FROM complaints WHERE id = ?";
 
-    if (!complaint) {
+    const [rows] = await db.execute(query, [id]);
+
+    if (rows.length === 0) {
       return res.status(404).json({ message: "Complaint not found" });
     }
 
-    await adminModel.assignComplaint(complaintId, assignedTo);
+    const complaint = rows[0];
+
+    await adminModel.assignComplaint(complaint.id, assignedTo);
 
     res.json({ message: "Complaint assigned successfully" });
 
@@ -32,19 +64,65 @@ exports.assignComplaint = async (req, res) => {
 // =====================================
 // Update Complaint Status (Super Admin)
 // =====================================
+// exports.updateComplaintStatus = async (req, res) => {
+//   try {
+//     const complaintId = parseInt(req.params.id, 10);
+//     const { newStatus } = req.body;
+
+//     if (!newStatus) {
+//       return res.status(400).json({ message: "newStatus is required" });
+//     }
+
+//     const complaint = await adminModel.getComplaintById(complaintId);
+
+//     if (!complaint) {
+//       return res.status(404).json({ message: "Complaint not found" });
+//     }
+
+//     const allowedTransitions = {
+//       submitted: ["under_review"],
+//       under_review: ["investigation"],
+//       investigation: ["resolved", "rejected"]
+//     };
+
+//     if (
+//       !allowedTransitions[complaint.status] ||
+//       !allowedTransitions[complaint.status].includes(newStatus)
+//     ) {
+//       return res.status(400).json({
+//         message: `Cannot move from ${complaint.status} to ${newStatus}`
+//       });
+//     }
+
+//     await adminModel.updateStatus(complaintId, newStatus);
+
+//     res.json({ message: `Status updated to ${newStatus}` });
+
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Error updating status" });
+//   }
+// };
+
 exports.updateComplaintStatus = async (req, res) => {
   try {
-    const complaintId = parseInt(req.params.id, 10);
+    const { id } = req.params;
+
+    const query = isNaN(id)
+      ? "SELECT * FROM complaints WHERE tracking_id = ?"
+      : "SELECT * FROM complaints WHERE id = ?";
+
+    const [rows] = await db.execute(query, [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Complaint not found" });
+    }
+
+    const complaint = rows[0];
     const { newStatus } = req.body;
 
     if (!newStatus) {
       return res.status(400).json({ message: "newStatus is required" });
-    }
-
-    const complaint = await adminModel.getComplaintById(complaintId);
-
-    if (!complaint) {
-      return res.status(404).json({ message: "Complaint not found" });
     }
 
     const allowedTransitions = {
@@ -62,7 +140,8 @@ exports.updateComplaintStatus = async (req, res) => {
       });
     }
 
-    await adminModel.updateStatus(complaintId, newStatus);
+    // Use the REAL numeric id from DB
+    await adminModel.updateStatus(complaint.id, newStatus);
 
     res.json({ message: `Status updated to ${newStatus}` });
 
@@ -94,7 +173,7 @@ exports.submitReport = async (req, res) => {
       return res.status(403).json({ message: "Not assigned to you" });
     }
 
-    await adminModel.insertReport(complaintId, req.user.id, report);
+    await adminModel.insertReport(complaint.id, req.user.id, report);
 
     res.json({ message: "Report submitted successfully" });
 
