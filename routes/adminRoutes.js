@@ -10,7 +10,8 @@ const {
   getAllComplaints,
   getAssignedComplaints,
   submitReport,
-  getDashboardStats
+  getDashboardStats,
+  getDashboardData
 
 } = require("../controllers/adminController");
 
@@ -64,7 +65,7 @@ router.get(
   "/dashboard",
   verifyToken,
   roleMiddleware("super_admin", "admin", "investigator"),
-  getDashboardStats
+  getDashboardData
 );
 
 module.exports = router;

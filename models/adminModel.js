@@ -76,27 +76,102 @@ exports.getAllComplaints = async () => {
 };
 
 // Dashboard stats
+// exports.getDashboardStats = async (role, userId) => {
+//   let query = `
+//     SELECT 
+//       COUNT(*) as total,
+//       SUM(status = 'submitted') as submitted,
+//       SUM(status = 'under_review') as under_review,
+//       SUM(status = 'investigation') as investigation,
+//       SUM(status = 'resolved') as resolved,
+//       SUM(status = 'rejected') as rejected
+//     FROM complaints
+//   `;
+
+//   let params = [];
+
+//   if (role !== "super_admin") {
+//     query += " WHERE assigned_to = ?";
+//     params.push(userId);
+//   }
+
+//   const [rows] = await db.execute(query, params);
+//   return rows[0];
+// };
+
 exports.getDashboardStats = async (role, userId) => {
-  let query = `
+  let whereClause = "";
+  let params = [];
+
+  if (role !== "super_admin") {
+    whereClause = "WHERE assigned_to = ?";
+    params.push(userId);
+  }
+
+  // 📊 Complaint stats
+  const [complaintStats] = await db.execute(
+    `
     SELECT 
       COUNT(*) as total,
       SUM(status = 'submitted') as submitted,
       SUM(status = 'under_review') as under_review,
       SUM(status = 'investigation') as investigation,
       SUM(status = 'resolved') as resolved,
-      SUM(status = 'rejected') as rejected
+      SUM(status = 'rejected') as rejected,
+      SUM(priority = 'high') as high_priority_count
     FROM complaints
-  `;
+    ${whereClause}
+  `,
+    params
+  );
 
-  let params = [];
+  // 👥 Total users (ONLY for super admin)
+  let totalUsers = 0;
 
-  if (role !== "super_admin") {
-    query += " WHERE assigned_to = ?";
-    params.push(userId);
+  if (role === "super_admin") {
+    const [users] = await db.execute(
+      `SELECT COUNT(*) as total_users FROM users`
+    );
+    totalUsers = users[0].total_users;
   }
 
-  const [rows] = await db.execute(query, params);
-  return rows[0];
+  return {
+    // ...complaintStats[0],
+    // total_users: totalUsers
+
+    total: Number(complaintStats[0].total),
+    submitted: Number(complaintStats[0].submitted),
+    under_review: Number(complaintStats[0].under_review),
+    investigation: Number(complaintStats[0].investigation),
+    resolved: Number(complaintStats[0].resolved),
+    rejected: Number(complaintStats[0].rejected),
+    high_priority_count: Number(complaintStats[0].high_priority_count),
+    total_users: Number(totalUsers)
+  };
+};
+
+
+// ✅ Complaints by category
+exports.getComplaintsByCategory = async () => {
+  const [rows] = await db.execute(`
+    SELECT violation_category, COUNT(*) as count
+    FROM complaints
+    GROUP BY violation_category
+  `);
+
+  return rows;
+};
+
+// ✅ Recent activity
+exports.getRecentActivity = async () => {
+  const [rows] = await db.execute(`
+    SELECT tracking_id, title, created_at
+    FROM complaints
+    ORDER BY created_at DESC
+    LIMIT 5
+  `);
+
+  return rows;
 };
 
 

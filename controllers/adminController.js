@@ -221,7 +221,10 @@ exports.getDashboardStats = async (req, res) => {
       req.user.id
     );
 
-    res.json(stats);
+    res.json({
+      success: true,
+      stats
+    });
 
   } catch (error) {
     console.error(error);
@@ -229,6 +232,29 @@ exports.getDashboardStats = async (req, res) => {
   }
 };
 
+
+exports.getDashboardData = async (req, res) => {
+  try {
+    const stats = await adminModel.getDashboardStats(
+      req.user.role,
+      req.user.id
+    );
+
+    const categories = await adminModel.getComplaintsByCategory();
+    const recent = await adminModel.getRecentActivity();
+
+    res.json({
+      success: true,
+      stats,
+      categories,
+      recentActivity: recent
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching dashboard data" });
+  }
+};
 
 
 exports.getUsers = async (req, res) => {
