@@ -356,17 +356,17 @@ exports.login = async (req, res) => {
       });
     }
 
-    // ✅ Update last login
+    // Update last login
     await updateLastLogin(user.id);
 
-    // ✅ Generate JWT
+    // Generate JWT
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    // ✅ Clean response
+    // Clean response
     res.json({
       message: "Login successful",
       token,

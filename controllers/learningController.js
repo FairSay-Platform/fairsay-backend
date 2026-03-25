@@ -34,6 +34,12 @@ const updateLessonProgress = async (req, res) => {
   const userId = req.user.id;
 
   try {
+    if (!lessonId || !courseSlug || !lessonNumber) {
+      return res.status(400).json({
+        message: "Missing required fields"
+      });
+    }
+
     await db.query(
       `INSERT IGNORE INTO user_lesson_progress (user_id, course_slug, lesson_number, lesson_id)
        VALUES (?, ?, ?, ?)`,
@@ -52,7 +58,8 @@ const updateLessonProgress = async (req, res) => {
 // -------------------
 const completeLesson = async (req, res) => {
   const userId = req.user.id;
-  const lessonId = parseInt(req.params.lessonId);
+  // const lessonId = parseInt(req.params.lessonId);
+  const lessonId = req.params.lessonId; // KEEP AS STRING
 
   const { courseSlug, lessonNumber } = req.body; 
   console.log("BODY:", req.body);
@@ -117,6 +124,14 @@ const submitQuiz = async (req, res) => {
   const PASS_MARK = 70;
 
   try {
+    console.log("QUIZ BODY:", req.body); // 👈 debug
+
+    if (!courseSlug || score === undefined) {
+      return res.status(400).json({
+        message: "Missing courseSlug or score"
+      });
+    }
+
     const isPassed = score >= PASS_MARK;
 
     await db.query(
@@ -132,9 +147,13 @@ const submitQuiz = async (req, res) => {
     );
 
     res.json({ success: true, isPassed });
+
   } catch (error) {
     console.error("Submit quiz error:", error);
-    res.status(500).json({ error: error.message });
+
+    res.status(500).json({
+      error: error.message
+    });
   }
 };
 
