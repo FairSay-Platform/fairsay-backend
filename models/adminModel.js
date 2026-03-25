@@ -180,8 +180,9 @@ exports.getUsers = async (role, userId, verification, limit = 20, offset = 0) =>
   let params = [];
   let countParams = [];
 
-  const cleanLimit = parseInt(limit, 10) || 20;
-  const cleanOffset = parseInt(offset, 10) || 0;
+  // const cleanLimit = parseInt(limit, 10) || 20;
+  // const cleanOffset = parseInt(offset, 10) || 0;
+  const cleanLimit = parseInt(limit, 10) || 1000;
 
   try {
     // --- SUPER ADMIN BLOCK ---
@@ -210,8 +211,9 @@ exports.getUsers = async (role, userId, verification, limit = 20, offset = 0) =>
         countParams.push(verification);
       }
 
-      query += ` ORDER BY u.created_at DESC LIMIT ? OFFSET ?`;
-      params.push(cleanLimit, cleanOffset);
+      // query += ` ORDER BY u.created_at DESC LIMIT ? OFFSET ?`;
+      // params.push(cleanLimit, cleanOffset);
+      query += ` ORDER BY u.created_at DESC`;
 
       const [userRows] = await db.query(query, params);
       const [countRows] = await db.query(countQuery, countParams);
@@ -255,8 +257,9 @@ exports.getUsers = async (role, userId, verification, limit = 20, offset = 0) =>
         countParams.push(verification);
       }
 
-      query += ` ORDER BY u.created_at DESC LIMIT ? OFFSET ?`;
-      params.push(cleanLimit, cleanOffset);
+      // query += ` ORDER BY u.created_at DESC LIMIT ? OFFSET ?`;
+      // params.push(cleanLimit, cleanOffset);
+      query += ` ORDER BY u.created_at DESC`;
 
       const [userRows] = await db.query(query, params);
       const [countRows] = await db.query(countQuery, countParams);
