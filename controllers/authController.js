@@ -325,30 +325,52 @@ exports.getCurrentUser = async (req, res) => {
 
 
 
+// exports.updateProfile = async (req, res) => {
+//   try {
+
+//     const userId = req.user.id;
+
+//     await updateUserProfile(userId, req.body);
+
+//     res.json({
+//       message: "Profile updated successfully",
+//       profile_completed: true
+//     });
+
+//   } catch (err) {
+
+//     console.error(err);
+
+//     res.status(500).json({
+//       message: "Server error"
+//     });
+
+//   }
+
+// };
+
+
+
 exports.updateProfile = async (req, res) => {
   try {
-
     const userId = req.user.id;
 
-    await updateUserProfile(userId, req.body);
+    // Model handles everything and returns the updated user
+    const updatedUser = await updateUserProfile(userId, req.body);
 
     res.json({
       message: "Profile updated successfully",
+      user: updatedUser,        // full updated user
       profile_completed: true
     });
 
   } catch (err) {
-
     console.error(err);
-
     res.status(500).json({
       message: "Server error"
     });
-
   }
-
 };
-
 
 //  FORGOT PASSWORD
 
