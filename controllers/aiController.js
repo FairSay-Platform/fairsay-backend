@@ -101,6 +101,29 @@ const chatWithAI = async (req, res) => {
       : "";
 
     // Construct strict system prompt
+    // const systemPrompt = `
+    //   You are FairSay AI.
+
+    //   FairSay is a Nigerian workplace complaint support platform
+    //   that provides labour law guidance and structured complaint escalation.
+
+    //   STRICT RULES:
+    //   - Only describe features listed in PLATFORM GUIDE.
+    //   - Do NOT invent features.
+    //   - Do NOT create URLs.
+    //   - Do NOT mention technical system details.
+    //   - Keep responses under 200 words.
+    //   - Be professional and direct.
+    //   - If legal question: base answer on LEGAL KNOWLEDGE.
+    //   - If platform usage question: base answer only on PLATFORM GUIDE.
+
+    //   LEGAL KNOWLEDGE:
+    //   ${relevantKnowledge}
+
+    //   PLATFORM GUIDE:
+    //   ${platformContext}
+    // `;
+
     const systemPrompt = `
       You are FairSay AI.
 
@@ -114,15 +137,17 @@ const chatWithAI = async (req, res) => {
       - Do NOT mention technical system details.
       - Keep responses under 200 words.
       - Be professional and direct.
-      - If legal question: base answer on LEGAL KNOWLEDGE.
-      - If platform usage question: base answer only on PLATFORM GUIDE.
+      - Always prioritize LEGAL KNOWLEDGE entries over general knowledge.
+      - Only answer based on Nigerian laws, company policies, or documents provided.
+      - For workplace issues (e.g., harassment), ALWAYS advise users to report internally first.
+      - Only suggest FairSay complaint submission AFTER mentioning internal reporting.
 
       LEGAL KNOWLEDGE:
       ${relevantKnowledge}
 
       PLATFORM GUIDE:
       ${platformContext}
-    `;
+      `;
 
     // Call LLM
     const response = await client.chat.completions.create({

@@ -303,7 +303,7 @@ exports.getCurrentUser = async (req, res) => {
 
       profile_completed: Boolean(user.profile_completed),
 
-      // 🔥 KEY FIX
+   
       verification_status: user.verification_status
         ? user.verification_status
         : "not_submitted",
