@@ -3,8 +3,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const sendEmail = require("../utils/mailer"); 
 const { updateUserProfile } = require("../models/profileModel");
-const { OAuth2Client } = require("google-auth-library");
-// const { approveUser } = require("../models/verificationModel");
+
 
 const {
   createUser,
@@ -236,44 +235,23 @@ exports.resendVerificationEmail = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     let { email, password } = req.body;
-
     email = email?.trim().toLowerCase();
 
     if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password are required",
-      });
+      return res.status(400).json({ message: "Email and password are required" });
     }
 
     const user = await findUserByEmail(email);
 
-    if (!user) {
-      return res.status(400).json({
-        message: "Invalid credentials",
-      });
-    }
-
-    if (!user.is_active) {
-      return res.status(403).json({
-        message: "Account is deactivated",
-      });
-    }
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    if (!user.is_active) return res.status(403).json({ message: "Account is deactivated" });
 
     const validPassword = await bcrypt.compare(password, user.password_hash);
-
-    if (!validPassword) {
-      return res.status(400).json({
-        message: "Invalid credentials",
-      });
-    }
+    if (!validPassword) return res.status(400).json({ message: "Invalid credentials" });
 
     await updateLastLogin(user.id);
 
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
     res.json({
       message: "Login successful",
@@ -284,34 +262,24 @@ exports.login = async (req, res) => {
         last_name: user.last_name,
         email: user.email,
         role: user.role,
-
         email_verified: Boolean(user.email_verified),
-
         profile_completed: Boolean(user.profile_completed),
         verification_submitted: Boolean(user.verification_submitted),
-
-        is_verified: Boolean(user.is_verified),
-
+        employee_verified: Boolean(user.employee_verified),
         verification_status: user.is_verified
           ? "approved"
           : user.verification_submitted
           ? "pending"
           : "not_submitted",
-
         course_completed: Boolean(user.course_completed),
-
         lessons_completed: Number(user.lessons_completed || 0),
       },
     });
-
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({
-      message: "Server error",
-    });
+    res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // GET CURRENT USER (restore session)
 exports.getCurrentUser = async (req, res) => {
@@ -357,28 +325,60 @@ exports.getCurrentUser = async (req, res) => {
 
 
 
+// exports.updateProfile = async (req, res) => {
+//   try {
+
+//     const userId = req.user.id;
+
+//     await updateUserProfile(userId, req.body);
+
+//     res.json({
+//       message: "Profile updated successfully",
+//       profile_completed: true
+//     });
+
+//   } catch (err) {
+
+//     console.error(err);
+
+//     res.status(500).json({
+//       message: "Server error"
+//     });
+
+//   }
+
+// };
+
+
+
 exports.updateProfile = async (req, res) => {
   try {
-
     const userId = req.user.id;
-
     await updateUserProfile(userId, req.body);
+
+    // fetch full updated user info
+    const [rows] = await db.execute(
+      `SELECT u.id, u.first_name, u.last_name, u.email, u.role, u.email_verified,
+              u.profile_completed, u.verification_submitted, u.verification_status,
+              u.course_completed, u.lessons_completed,
+              p.job_title, p.department, p.company_name, p.phone, p.location
+       FROM users u
+       LEFT JOIN user_profiles p ON u.id = p.user_id
+       WHERE u.id = ?`,
+      [userId]
+    );
+
+    const user = rows[0];
 
     res.json({
       message: "Profile updated successfully",
-      profile_completed: true
+      user,
     });
 
   } catch (err) {
-
     console.error(err);
-
-    res.status(500).json({
-      message: "Server error"
-    });
-
+    res.status(500).json({ message: "Server error" });
   }
-
 };
 
 
