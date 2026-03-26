@@ -325,60 +325,28 @@ exports.getCurrentUser = async (req, res) => {
 
 
 
-// exports.updateProfile = async (req, res) => {
-//   try {
-
-//     const userId = req.user.id;
-
-//     await updateUserProfile(userId, req.body);
-
-//     res.json({
-//       message: "Profile updated successfully",
-//       profile_completed: true
-//     });
-
-//   } catch (err) {
-
-//     console.error(err);
-
-//     res.status(500).json({
-//       message: "Server error"
-//     });
-
-//   }
-
-// };
-
-
-
 exports.updateProfile = async (req, res) => {
   try {
+
     const userId = req.user.id;
+
     await updateUserProfile(userId, req.body);
-
-    // fetch full updated user info
-    const [rows] = await db.execute(
-      `SELECT u.id, u.first_name, u.last_name, u.email, u.role, u.email_verified,
-              u.profile_completed, u.verification_submitted, u.verification_status,
-              u.course_completed, u.lessons_completed,
-              p.job_title, p.department, p.company_name, p.phone, p.location
-       FROM users u
-       LEFT JOIN user_profiles p ON u.id = p.user_id
-       WHERE u.id = ?`,
-      [userId]
-    );
-
-    const user = rows[0];
 
     res.json({
       message: "Profile updated successfully",
-      user,
+      profile_completed: true
     });
 
   } catch (err) {
+
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+
+    res.status(500).json({
+      message: "Server error"
+    });
+
   }
+
 };
 
 
