@@ -232,96 +232,7 @@ exports.resendVerificationEmail = async (req, res) => {
 };
 
 
-// // LOGIN
-// exports.login = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     if (!email || !password) {
-//       return res
-//         .status(400)
-//         .json({ message: "Email and password are required" });
-//     }
-
-//     const user = await findUserByEmail(email);
-
-//     if (!user) {
-//       return res.status(400).json({ message: "Invalid credentials" });
-//     }
-
-//     // if (!user.email_verified) {
-//     //   return res.status(403).json({
-//     //     message: "Please verify your email before login",
-//     //   });
-//     // }
-
-
-//     // Optional email verification — allow login even if not verified
-//     if (!user.email_verified) {
-//       console.log("⚠️ User logged in without email verification");
-//       // You can also send a flag in the response
-//     }
-
-//     if (!user.is_active) {
-//       return res.status(403).json({
-//         message: "Account is deactivated",
-//       });
-//     }
-
-//     const validPassword = await bcrypt.compare(password, user.password_hash);
-
-//     if (!validPassword) {
-//       return res.status(400).json({ message: "Invalid credentials" });
-//     }
-
-//     await updateLastLogin(user.id);
-
-//     const token = jwt.sign(
-//       { id: user.id, role: user.role },
-//       process.env.JWT_SECRET,
-//       { expiresIn: "1d" }
-//     );
-
-//     // res.json({
-//     //   message: "Login successful",
-//     //   token,
-//     //   user: {
-//     //     id: user.id,
-//     //     first_name: user.first_name,
-//     //     last_name: user.last_name,
-//     //     email: user.email,
-//     //     role: user.role,
-//     //     email_verified: user.email_verified,
-//     //     profile_completed: user.profile_completed || false,
-//     //     verification_submitted: user.verification_submitted || false, 
-//     //     verification_status: user.verification_status || null,      
-//     //     course_completed: user.course_completed || false,
-//     //     lessons_completed: user.lessons_completed || false,
-//     //   },
-//     // });
-//     res.json({
-//   message: "Login successful",
-//   token,
-//   can_access: true,
-//   email_verified: user.email_verified,
-//   user: {
-//     id: user.id,
-//     first_name: user.first_name,
-//     last_name: user.last_name,
-//     email: user.email,
-//     role: user.role,
-//     profile_completed: user.profile_completed || false,
-//     verification_submitted: user.verification_submitted || false,
-//     lessons_completed: user.lessons_completed || false,
-//   },
-// });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-
+// LOGIN
 exports.login = async (req, res) => {
   try {
     let { email, password } = req.body;
@@ -356,17 +267,14 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Update last login
     await updateLastLogin(user.id);
 
-    // Generate JWT
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    // Clean response
     res.json({
       message: "Login successful",
       token,
@@ -376,10 +284,23 @@ exports.login = async (req, res) => {
         last_name: user.last_name,
         email: user.email,
         role: user.role,
-        email_verified: user.email_verified, // optional (keep if frontend uses it)
-        profile_completed: user.profile_completed || false,
-        verification_submitted: user.verification_submitted || false,
-        lessons_completed: user.lessons_completed || 0,
+
+        email_verified: Boolean(user.email_verified),
+
+        profile_completed: Boolean(user.profile_completed),
+        verification_submitted: Boolean(user.verification_submitted),
+
+        is_verified: Boolean(user.is_verified),
+
+        verification_status: user.is_verified
+          ? "approved"
+          : user.verification_submitted
+          ? "pending"
+          : "not_submitted",
+
+        course_completed: Boolean(user.course_completed),
+
+        lessons_completed: Number(user.lessons_completed || 0),
       },
     });
 
@@ -390,70 +311,6 @@ exports.login = async (req, res) => {
     });
   }
 };
-
-
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-exports.googleLogin = async (req, res) => {
-  try {
-    const { tokenId } = req.body; // token from frontend
-
-    // Verify token with Google
-    const ticket = await client.verifyIdToken({
-      idToken: tokenId,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const { email, given_name, family_name, sub: googleId } = ticket.getPayload();
-
-    // Check if user already exists
-    let user = await findUserByEmail(email);
-
-    if (!user) {
-      // Create new user if not exist
-      const newUser = await createUser(
-        given_name,
-        family_name,
-        email,
-        "", // no password for Google login
-        "user"
-      );
-
-      user = await findUserByEmail(email);
-    }
-
-    // Update user with google_id and mark email verified
-    await updateUser(user.id, { google_id: googleId, email_verified: true });
-
-    // Create JWT
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-
-    res.json({
-      message: "Login successful",
-      token,
-      user: {
-        id: user.id,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        email: user.email,
-        role: user.role,
-        email_verified: true,
-      },
-    });
-  } catch (error) {
-    console.error("Google login error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-
-
-
 
 
 // GET CURRENT USER (restore session)
@@ -472,12 +329,23 @@ exports.getCurrentUser = async (req, res) => {
         last_name: user.last_name,
         email: user.email,
         role: user.role,
-        email_verified: user.email_verified,
-        profile_completed: user.profile_completed || false,
-        verification_submitted: user.verification_submitted || false,
-        verification_status: user.verification_status || null,
-        course_completed: user.course_completed || false,
-        lessons_completed: user.lessons_completed || false,
+
+        email_verified: Boolean(user.email_verified),
+
+        profile_completed: Boolean(user.profile_completed),
+        verification_submitted: Boolean(user.verification_submitted),
+
+        is_verified: Boolean(user.is_verified),
+
+        verification_status: user.is_verified
+          ? "approved"
+          : user.verification_submitted
+          ? "pending"
+          : "not_submitted",
+
+        course_completed: Boolean(user.course_completed),
+
+        lessons_completed: Number(user.lessons_completed || 0),
       },
     });
 
@@ -488,8 +356,8 @@ exports.getCurrentUser = async (req, res) => {
 };
 
 
-exports.updateProfile = async (req, res) => {
 
+exports.updateProfile = async (req, res) => {
   try {
 
     const userId = req.user.id;

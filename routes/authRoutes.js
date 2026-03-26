@@ -10,7 +10,6 @@ router.post("/login", login);
 router.get("/me", verifyToken, getCurrentUser);
 router.get("/verify-email", verifyEmail);
 router.post("/resend-verification", resendVerificationEmail);
-router.post("/google-login", googleLogin);
 
 router.put("/profile", verifyToken, updateProfile);
 
