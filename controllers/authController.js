@@ -291,31 +291,29 @@ exports.getCurrentUser = async (req, res) => {
     }
 
     res.json({
-      user: {
-        id: user.id,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        email: user.email,
-        role: user.role,
+    message: "Login successful",
+    token,
+    user: {
+      id: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      role: user.role,
+      email_verified: Boolean(user.email_verified),
 
-        email_verified: Boolean(user.email_verified),
+      profile_completed: Boolean(user.profile_completed),
 
-        profile_completed: Boolean(user.profile_completed),
-        verification_submitted: Boolean(user.verification_submitted),
+      // 🔥 KEY FIX
+      verification_status: user.verification_status
+        ? user.verification_status
+        : "not_submitted",
 
-        is_verified: Boolean(user.is_verified),
+      verification_submitted: Boolean(user.verification_status),
 
-        verification_status: user.is_verified
-          ? "approved"
-          : user.verification_submitted
-          ? "pending"
-          : "not_submitted",
-
-        course_completed: Boolean(user.course_completed),
-
-        lessons_completed: Number(user.lessons_completed || 0),
-      },
-    });
+      course_completed: Boolean(user.course_completed),
+      lessons_completed: Number(user.lessons_completed || 0),
+    },
+  });
 
   } catch (error) {
     console.error(error);
