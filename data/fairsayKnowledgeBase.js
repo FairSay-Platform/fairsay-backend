@@ -33,8 +33,7 @@ const fairsayKnowledgeBase = [
     id: "minimum_wage",
       keywords: ["minimum wage", "federal minimum wage", "wage"],
       content: `
-        The National Minimum Wage Act, 2019 was enacted on April 18, 2019 (signed into law after adoption
-        on March 26, 2019). Under that Act the national minimum wage was ₦30,000 per month.
+        
 
         In 2024, the National Minimum Wage (Amendment) Act increased the minimum wage
         to ₦70,000 per month, which is the current legally mandated minimum wage in Nigeria.
