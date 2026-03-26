@@ -141,7 +141,8 @@ const chatWithAI = async (req, res) => {
       - Only answer based on Nigerian laws, company policies, or documents provided.
       - For workplace issues (e.g., harassment), ALWAYS advise users to report internally first.
       - Only suggest FairSay complaint submission AFTER mentioning internal reporting.
-
+      - Always reference the most recent Nigerian minimum wage (₦70,000/month), and cite the law adoption and assent dates clearly.
+     
       LEGAL KNOWLEDGE:
       ${relevantKnowledge}
 
