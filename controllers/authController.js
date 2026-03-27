@@ -293,7 +293,7 @@ exports.getCurrentUser = async (req, res) => {
 
     res.json({
     message: "Login successful",
-    token,
+    // token,
     user: {
       id: user.id,
       first_name: user.first_name,
