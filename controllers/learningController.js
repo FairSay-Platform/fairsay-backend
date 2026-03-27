@@ -19,6 +19,8 @@ const getLearningState = async (req, res) => {
       [userId]
     );
 
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+
     res.json({ completedLessons: lessons, quizStatuses: quizzes });
   } catch (error) {
     console.error("Get learning state error:", error);
