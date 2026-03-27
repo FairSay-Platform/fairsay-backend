@@ -1,28 +1,3 @@
-// module.exports = (req, res, next) => {
-//   const user = req.user;
-
-//   if (!user) {
-//     return res.status(401).json({ message: "Unauthorized" });
-//   }
-
-//   // Admin roles bypass onboarding
-//   if (['super_admin', 'admin', 'investigator'].includes(user.role)) {
-//     return next();
-//   }
-
-//   // Normal user checks
-//   if (!user.profile_completed) {
-//     return res.status(400).json({ message: "Complete profile before submitting a complaint" });
-//   }
-
-//   if (!user.course_completed) {
-//     return res.status(400).json({ message: "Complete mandatory courses before submitting a complaint" });
-//   }
-
-//   // To Add any other pre-checks here...
-
-//   next();
-// };
 
 
 // middleware/requireOnboarding.js
@@ -47,3 +22,30 @@ module.exports = (req, res, next) => {
 
   next();
 };
+
+
+// // middleware/requireOnboarding.js
+// module.exports = (req, res, next) => {
+//   const { role } = req.user;
+
+//   if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+//   // Admins bypass everything
+//   if (["super_admin", "admin", "investigator"].includes(role)) return next();
+
+//   // For complaint/whistleblowing routes, skip profile/verification check
+//   if (req.path.startsWith("/complaint") || req.path.startsWith("/whistleblowing")) {
+//     return next();
+//   }
+
+//   // Optional: enforce profile for other routes
+//   if (!req.user.profile_completed) {
+//     return res.status(400).json({ message: "Complete your profile first" });
+//   }
+
+//   if (!req.user.employee_verified) {
+//     return res.status(400).json({ message: "Complete employee verification first" });
+//   }
+
+//   next();
+// };
