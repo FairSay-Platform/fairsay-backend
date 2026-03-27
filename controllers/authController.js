@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const sendEmail = require("../utils/mailer"); 
-// const { updateUserProfile } = require("../models/profileModel");
+const { updateUserProfile } = require("../models/profileModel");
 
 
 const {
@@ -15,7 +15,7 @@ const {
   verifyUserEmailById,
   updateVerificationToken,
   updateUser,
-  updateUserProfile
+  
 } = require("../models/userModel");
 
 const {
